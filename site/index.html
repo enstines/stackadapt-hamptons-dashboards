@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Douglas Elliman</title>
+<style>
+  :root { --navy: #081631; --ink: #1f1e1c; --muted: #6e6b65; --line: #e5e2db; --panel: #ffffff; --bg: #f6f5f2; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--navy); }
+  body { font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--ink); display: flex; flex-direction: column; align-items: center; padding: 8vh 16px 48px; gap: 28px; }
+  .logo { width: min(320px, 70vw); height: auto; display: block; }
+  .card { background: var(--panel); border-radius: 12px; padding: 24px; width: min(420px, 100%); box-shadow: 0 4px 5.5px -1px rgba(0,0,0,.15); }
+  .card.wide { width: min(760px, 100%); }
+  form { display: flex; gap: 8px; }
+  input[type=password], input[type=search] { flex: 1; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); min-width: 0; }
+  button { font: inherit; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; background: var(--navy); color: #fff; }
+  button.ghost { background: transparent; color: var(--navy); border: 1px solid var(--line); padding: 6px 12px; font-size: 13px; }
+  button:disabled { opacity: .6; cursor: default; }
+  .msg { margin: 10px 0 0; font-size: 13px; color: #c0392b; min-height: 1.2em; }
+  h1 { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; font-weight: 400; font-size: 28px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .row .name { flex: 1; min-width: 0; }
+  .row .name b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+  .row .name span { color: var(--muted); font-size: 12px; }
+  .row a.open { background: var(--navy); color: #fff; text-decoration: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; }
+  .bar { display: flex; gap: 8px; margin-bottom: 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<img class="logo" src="/assets/de-logo.svg" alt="Douglas Elliman">
+
+<div class="card" id="lock">
+  <form id="f" autocomplete="on">
+    <input type="password" id="pw" name="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required>
+    <button type="submit" id="go">Open</button>
+  </form>
+  <p class="msg" id="err" role="alert"></p>
+</div>
+
+<div class="card wide" id="list" hidden>
+  <h1>Client dashboards</h1>
+  <p class="sub" id="count"></p>
+  <div class="bar"><input type="search" id="q" placeholder="Search clients" aria-label="Search clients"></div>
+  <div id="rows"></div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const un = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  let items = [];
+
+  async function unlock(pw) {
+    const home = await (await fetch('/home.json', { cache: 'no-cache' })).json();
+    const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+    const aes = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: un(home.salt), iterations: home.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    // a wrong password fails here
+    const pkcs8 = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: un(home.iv) }, aes, un(home.wrapped));
+    const priv = await crypto.subtle.importKey('pkcs8', pkcs8, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
+    const out = [];
+    for (const e of home.entries) {
+      const raw = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, un(e.k));
+      const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: un(e.iv) }, key, un(e.ct));
+      out.push(JSON.parse(dec.decode(pt)));
+    }
+    return out;
+  }
+
+  function show() {
+    const q = $('q').value.trim().toLowerCase();
+    const rows = $('rows'); rows.replaceChildren();
+    const shown = items.filter((i) => !q || i.name.toLowerCase().includes(q) || String(i.group).includes(q));
+    $('count').textContent = items.length + (items.length === 1 ? ' dashboard' : ' dashboards') + (q ? ' · ' + shown.length + ' shown' : '');
+    for (const i of shown) {
+      const url = location.origin + '/r/' + i.code + '/';
+      const row = document.createElement('div'); row.className = 'row';
+      const nm = document.createElement('div'); nm.className = 'name';
+      const b = document.createElement('b'); b.textContent = i.name;
+      const s = document.createElement('span'); s.textContent = 'Group ' + i.group + (i.last_day ? ' · data through ' + i.last_day : '');
+      nm.append(b, s);
+      const open = document.createElement('a'); open.className = 'open'; open.href = url; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.textContent = 'Open';
+      const cp = document.createElement('button'); cp.type = 'button'; cp.className = 'ghost'; cp.textContent = 'Copy link';
+      cp.addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); cp.textContent = 'Copied'; } catch (e) { cp.textContent = 'Copy failed'; } setTimeout(() => (cp.textContent = 'Copy link'), 1600); });
+      row.append(nm, open, cp); rows.append(row);
+    }
+    if (!shown.length) { const p = document.createElement('p'); p.className = 'sub'; p.textContent = items.length ? 'No match.' : 'No dashboards yet.'; rows.append(p); }
+  }
+
+  $('f').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    $('err').textContent = ''; $('go').disabled = true; $('go').textContent = 'Checking…';
+    try {
+      items = await unlock($('pw').value);
+      $('pw').value = '';
+      $('lock').hidden = true; $('list').hidden = false; show(); $('q').focus();
+    } catch (e) {
+      $('err').textContent = 'That password didn’t work.';
+    } finally { $('go').disabled = false; $('go').textContent = 'Open'; }
+  });
+  $('q').addEventListener('input', show);
+})();
+</script>
+</body>
+</html>

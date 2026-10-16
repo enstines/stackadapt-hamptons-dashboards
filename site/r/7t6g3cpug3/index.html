@@ -1,0 +1,1325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>37 Second Neck | September - October – Campaign Dashboard</title>
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="/assets/d3.min.js"></script>
+<script>window.DASH_DATASETS = ["totals", "daily", "campaigns", "trackers", "demographics", "audiences", "domains", "devices", "geo", "zip_shapes", "counties", "basemap"]; window.DASH_INITIAL_PARAMS = { group: "495907" };</script>
+<script src="/assets/dash-shim.js" data-base="./data/"></script>
+</head>
+<body>
+<div id="app">
+<style>
+.sn { font-family: var(--font-anthropic-sans); color: var(--color-fg); display: flex; flex-direction: column; gap: var(--cds-gap-lg); padding-bottom: var(--cds-pad-xl); }
+.sn * { box-sizing: border-box; }
+.sn-head { display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
+.sn-eyebrow { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+.sn-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; line-height: 1.15; }
+.sn-take { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg); max-width: 60rem; min-height: 1.5em; }
+.sn-take b, .sn-kpi .sn-note b { font-weight: 600; }
+.sn-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm) var(--cds-gap-md); margin-top: var(--cds-gap-xs); }
+.sn-field { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.sn-select { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 4px 8px; }
+.sn-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+.sn-seg button { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: transparent; border: 0; border-radius: calc(var(--cds-radius) - 2px); padding: 5px 10px; cursor: pointer; transition: background .2s, color .2s; }
+.sn-seg button:hover { color: var(--color-fg); }
+.sn-seg button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-fg); box-shadow: 0 0 0 1px var(--color-border-line); }
+.sn-window { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+
+.sn-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+.sn-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: 4px; min-height: 8.5rem; }
+.sn-kpi .sn-lab { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.sn-kpi .sn-val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.1; font-variant-numeric: tabular-nums; min-height: 1.1em; }
+.sn-kpi .sn-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); min-height: 1.2em; }
+.sn-spark { height: 36px; margin-top: auto; }
+.sn-spark svg { display: block; overflow: visible; }
+.sn-split { margin-top: auto; height: 8px; border-radius: 4px; background: var(--cds-chart-muted); overflow: hidden; }
+.sn-split > div { height: 100%; width: 0; border-radius: 4px; transition: width 1.1s var(--cds-ease-out); }
+
+.sn-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+.sn-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.sn-card .sn-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+.sn-card-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--cds-gap-sm); }
+.sn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.sn-h { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-md) 0 0; }
+.sn-rel { position: relative; }
+
+.sn-chart { min-height: 260px; position: relative; }
+.sn-chart svg { display: block; }
+.sn-chart text { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); font-family: var(--font-anthropic-sans); }
+
+.sn-bars { position: relative; min-height: 120px; }
+.bx-row { position: absolute; left: 0; right: 0; top: 0; display: grid; grid-template-columns: minmax(6rem, 36%) 1fr minmax(3.5rem, auto); align-items: center; gap: var(--cds-gap-sm); cursor: default; border-radius: 4px; }
+.bx-row:hover { background: color-mix(in srgb, var(--color-fg) 5%, transparent); }
+.bx-label { display: flex; flex-direction: column; min-width: 0; font-size: var(--cds-font-size-caption); line-height: 1.25; padding-left: 4px; }
+.bx-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-fg); }
+.bx-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-fg-muted); font-size: 0.92em; }
+.bx-track { height: 14px; position: relative; }
+.bx-bar { height: 100%; border-radius: 4px; }
+.bx-val { font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; text-align: right; padding-right: 4px; color: var(--color-fg); }
+.bx-group { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-transform: none; margin: var(--cds-gap-xs) 0 2px; }
+
+.sn-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); align-items: center; }
+.sn-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+.sn-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); min-width: 10rem; max-width: 18rem; opacity: 0; transition: opacity .12s; }
+.sn-tip.on { opacity: 1; }
+.sn-tip .t { color: var(--cds-text-secondary); margin-bottom: 4px; }
+.sn-tip .l { display: flex; justify-content: space-between; gap: var(--cds-gap-md); font-variant-numeric: tabular-nums; }
+.sn-tip .l span:first-child { color: var(--color-fg-muted); }
+.sn-tip .l.hl span { color: var(--color-fg); font-weight: 600; }
+
+.sn-table-wrap { max-height: 26rem; overflow: auto; border-top: 1px solid var(--color-border-line); }
+.sn-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.sn-table th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: 0; border-bottom: 1px solid var(--color-border-line); z-index: 1; }
+.sn-table th:first-child, .sn-table td:first-child { text-align: left; }
+.sn-site { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.sn-ico { flex: none; width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; overflow: hidden; font-size: 10px; font-weight: 600; line-height: 1; color: #fff; background: var(--color-border-line); }
+.sn-ico.is-app { border-radius: 5px; }
+.sn-ico.is-img { background: #fff; box-shadow: 0 0 0 1px var(--color-border-line); }
+.sn-ico img { width: 14px; height: 14px; display: block; }
+.sn-table th button { font: inherit; color: inherit; background: none; border: 0; padding: 8px 8px; cursor: pointer; width: 100%; text-align: inherit; white-space: nowrap; }
+.sn-table th[aria-sort] button { color: var(--color-fg); }
+.sn-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid color-mix(in srgb, var(--color-border-line) 60%, transparent); white-space: nowrap; }
+.sn-table td:first-child { max-width: 16rem; overflow: hidden; text-overflow: ellipsis; }
+.sn-table tbody tr { transition: background .15s; }
+.sn-table tbody tr:hover, .sn-table tbody tr.is-hot { background: color-mix(in srgb, var(--color-fg) 6%, transparent); }
+.sn-table.sn-clickable tbody tr { cursor: pointer; }
+.sn-table tbody tr.is-picked td { font-weight: 600; }
+.sn-search { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 5px 8px; width: min(100%, 14rem); }
+.sn-hide-narrow { }
+@container sncard (max-width: 520px) { .sn-hide-narrow { display: none; } }
+.sn-card { container: sncard / inline-size; }
+
+.sn-map-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--cds-gap-md); }
+@container sncard (min-width: 900px) { .sn-map-layout { grid-template-columns: minmax(0, 1.9fr) minmax(16rem, 1fr); } }
+.sn-map { position: relative; border-radius: var(--cds-radius); overflow: hidden; border: 1px solid var(--color-border-line); background: color-mix(in srgb, #4f8fc9 24%, var(--color-panel)); min-height: 340px; touch-action: none; }
+.sn-map svg { display: block; width: 100%; height: auto; cursor: grab; }
+.sn-map svg:active { cursor: grabbing; }
+.sn-map .land { fill-rule: evenodd; fill: color-mix(in srgb, var(--color-fg) 5%, var(--color-bg)); stroke: color-mix(in srgb, #4f8fc9 45%, var(--color-border-line)); stroke-width: .8; vector-effect: non-scaling-stroke; }
+.sn-map .county { fill: none; stroke: color-mix(in srgb, var(--color-fg) 22%, transparent); stroke-width: .7; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
+.sn-map .lbl { fill: var(--color-fg); stroke: var(--color-bg); paint-order: stroke; stroke-linejoin: round; font-family: var(--font-anthropic-sans); font-weight: 500; pointer-events: none; }
+.sn-map .lbl.sub { fill: var(--color-fg-muted); font-weight: 400; }
+.sn-map .zip { fill-rule: evenodd; stroke: var(--color-panel); stroke-width: .6; vector-effect: non-scaling-stroke; transition: fill-opacity .6s; cursor: pointer; }
+.sn-map .zip.is-hot { stroke: var(--color-fg); stroke-width: 2; }
+.sn-map .bub { fill-opacity: .55; stroke-width: 1.25; vector-effect: non-scaling-stroke; cursor: pointer; }
+.sn-map .bub.is-hot { fill-opacity: .9; stroke: var(--color-fg); }
+.sn-map .pulse { fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.sn-map-tools { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 3; }
+.sn-map-tools button { font: inherit; width: 30px; height: 30px; border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; font-size: 16px; line-height: 1; }
+.sn-map-tools button:hover { background: var(--color-bg); }
+.sn-map-hint { position: absolute; left: 8px; bottom: 6px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: color-mix(in srgb, var(--color-panel) 85%, transparent); padding: 2px 6px; border-radius: 4px; pointer-events: none; }
+.sn-map-note { position: absolute; left: 8px; top: 8px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); pointer-events: none; }
+.sn-map-note:empty { display: none; }
+.sn-bubkey { display: inline-flex; align-items: center; gap: 6px; }
+.sn-bubkey svg { overflow: visible; }
+
+.sn-failed { display: flex !important; align-items: center; justify-content: center; gap: 8px; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.sn-failed::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+.sn-muted { color: var(--color-fg-muted); }
+.sn-foot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+details.sn-more summary { cursor: pointer; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: 4px 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sn-anim { animation: sn-rise var(--cds-dur-slow) var(--cds-ease-out) both; }
+  .sn-kpis > .sn-kpi:nth-child(2) { animation-delay: 40ms; } .sn-kpis > .sn-kpi:nth-child(3) { animation-delay: 80ms; }
+  .sn-kpis > .sn-kpi:nth-child(4) { animation-delay: 120ms; } .sn-kpis > .sn-kpi:nth-child(5) { animation-delay: 160ms; }
+  .sn-kpis > .sn-kpi:nth-child(6) { animation-delay: 200ms; } .sn-kpis > .sn-kpi:nth-child(7) { animation-delay: 240ms; }
+  .sn-kpis > .sn-kpi:nth-child(8) { animation-delay: 280ms; }
+  .sn-map .pulse.on { animation: sn-pulse 2.4s var(--cds-ease-out) infinite; }
+}
+@keyframes sn-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes sn-pulse { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(2.6); } }
+
+/* ---- Douglas Elliman look (from the Figma file "37 Second Neck – Campaign Dashboard") ---- */
+.sn {
+  --color-fg: #1f1e1c; --color-fg-muted: #6e6b65; --color-panel: #ffffff; --color-bg: #f6f5f2; --color-border-line: #e5e2db;
+  --cds-chart-muted: #b8b3a9; --cds-surface-popover: #ffffff; --cds-border: #e5e2db; --cds-text-secondary: #6e6b65;
+  --sn-navy: #081631; --sn-view: #a29992; --sn-male: #2892b9; --sn-female: #2e9e83; --sn-track: #efede8;
+  --sn-water: #dce7f2; --sn-land: #f3f1ec; --sn-coast: #a9c3dd; --sn-county: #b9b4aa;
+  background: var(--sn-navy); color: var(--color-fg); color-scheme: light;
+  padding: clamp(16px, 3.4vw, 48px); gap: 24px; border-radius: 12px;
+}
+.sn-head { background: var(--color-panel); border-radius: 10px; padding: 20px; gap: 8px; }
+.sn-title { font-size: clamp(2rem, 3.9vw, 55px); line-height: 1.15; }
+.sn-take { font-size: 15px; line-height: 1.45; }
+.sn-kpis { gap: 16px; }
+.sn-kpi { border-radius: 10px; padding: 16px 20px; box-shadow: 0 4px 5.5px -1px rgba(0, 0, 0, .15); }
+.sn-kpi .sn-val { font-size: clamp(1.9rem, 2.8vw, 40px); }
+.sn-card { border-radius: 10px; padding: 24px; gap: 12px; }
+.sn-card h2 { font-size: clamp(1.3rem, 2vw, 28px); font-weight: 600; line-height: 1.3; }
+.sn-grid { gap: 24px; }
+.sn-split { background: var(--sn-track); }
+.sn-map { background: var(--sn-water); border-color: var(--color-border-line); }
+.sn-map .land { fill: var(--sn-land); stroke: var(--sn-coast); }
+.sn-map .county { stroke: var(--sn-county); }
+.sn-map .zip { stroke: #ffffff; }
+.sn-map .lbl { stroke: #ffffff; }
+.sn-map .bub { fill-opacity: .5; }
+.sn > .sn-foot { color: #a3abbb; }
+.sn-brand { display: block; width: min(407px, 70%); height: auto; margin-top: 8px; }
+.sn:not(.is-video) .sn-vid { display: none !important; }
+.sn-map .world { fill: var(--sn-land); stroke: var(--sn-coast); stroke-width: .6; vector-effect: non-scaling-stroke; fill-rule: evenodd; }
+.sn-map .state { fill: none; stroke: var(--sn-county); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.sn-side-inner { display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+.sn-side-inner .sn-table-wrap { max-height: 30rem; }
+@container sncard (min-width: 900px) {
+  .sn-map-side { position: relative; min-height: 20rem; }
+  .sn-map-side > .sn-side-inner { position: absolute; inset: 0; }
+  .sn-map-side .sn-table-wrap { flex: 1 1 auto; min-height: 0; max-height: none; }
+}
+</style>
+
+<div class="sn">
+  <header class="sn-head" id="top">
+    <div class="sn-eyebrow">StackAdapt · Display campaign report</div>
+    <h1 class="sn-title" id="group-title" data-source="campaigns" data-field="campaign_group" data-row="0">37 Second Neck | September - October</h1>
+    <p class="sn-take" id="takeaway"></p>
+    <p class="sn-window">
+      <span data-source="totals" data-where="campaign=all" data-field="first_day" class="dash-skeleton" id="win-start">—</span>
+      <span> to </span>
+      <span data-source="totals" data-where="campaign=all" data-field="last_day" class="dash-skeleton" id="win-end">—</span>
+      <span> · from the daily StackAdapt report emails</span>
+    </p>
+    <div class="sn-bar">
+      <label class="sn-field">Campaign
+        <select class="sn-select" id="campaign-filter" aria-label="Campaign" data-source="campaigns"></select>
+      </label>
+      <div class="sn-field">Charts show
+        <div class="sn-seg" id="metric-picker" role="group" aria-label="Metric for charts"></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="sn-kpis" id="kpis">
+    <div class="sn-kpi sn-anim" id="kpi-clicks"><div class="sn-lab">Clicks</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="clicks">—</div><div class="sn-note">Total ad clicks</div><div class="sn-spark" data-source="daily" data-k="clicks"></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-impressions"><div class="sn-lab">Impressions</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="impressions">—</div><div class="sn-note">Ads served</div><div class="sn-spark" data-source="daily" data-k="impressions"></div></div>
+    <div class="sn-kpi sn-anim sn-vid" id="kpi-vc"><div class="sn-lab">Videos completed</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="video_completed">—</div><div class="sn-note">Video ads watched to the end</div><div class="sn-spark" data-source="daily" data-k="video_completed"></div></div>
+    <div class="sn-kpi sn-anim sn-vid" id="kpi-vcr"><div class="sn-lab">Video completion rate</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="vcr">—</div><div class="sn-note">Completed views ÷ impressions</div><div class="sn-spark" data-source="daily" data-k="vcr"></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-ctr"><div class="sn-lab">Click-through rate</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="ctr">—</div><div class="sn-note">Clicks ÷ impressions</div><div class="sn-spark" data-source="daily" data-k="ctr"></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-time"><div class="sn-lab">Avg. time on site</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="avg_time_on_site_sec">—</div><div class="sn-note">Per tracked visit, weighted by clicks</div><div class="sn-spark" data-source="daily" data-k="avg_time_on_site_sec"></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-cpc"><div class="sn-lab">Cost per click</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="cpc">—</div><div class="sn-note"><span data-source="totals" data-where="campaign=all" data-field="spend" id="kpi-spend">—</span> spent</div><div class="sn-spark" data-source="daily" data-k="cpc"></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-conv"><div class="sn-lab">Conversions</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="conversions">—</div><div class="sn-note">All conversion trackers</div><div class="sn-spark" data-source="daily" data-k="conversions"></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-clickconv"><div class="sn-lab">Click conversions</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="click_conversions">—</div><div class="sn-note"><span data-source="conv_split" data-where="campaign=all" data-field="click_share">—</span> of conversions, after a click</div><div class="sn-split"><div id="split-click"></div></div></div>
+    <div class="sn-kpi sn-anim" id="kpi-impconv"><div class="sn-lab">Impression conversions</div><div class="sn-val dash-skeleton" data-source="totals" data-where="campaign=all" data-field="impression_conversions">—</div><div class="sn-note"><span data-source="conv_split" data-where="campaign=all" data-field="impression_share">—</span> of conversions, view-through</div><div class="sn-split"><div id="split-imp"></div></div></div>
+  </section>
+
+  <section class="sn-card sn-anim" id="over-time">
+    <div class="sn-card-head">
+      <div><h2 id="over-time-title">Clicks over time</h2><p class="sn-sub">By day, all selected campaigns. Dashed line is the daily average.</p></div>
+    </div>
+    <div class="sn-chart sn-rel dash-skeleton" id="timeline" data-source="daily"></div>
+  </section>
+
+  <section class="sn-card sn-anim" id="geo">
+    <div class="sn-card-head">
+      <div><h2>Where the <span class="geo-noun">clicks</span> came from</h2><p class="sn-sub">Each ZIP code shaded by <span class="geo-noun">clicks</span>; circles are sized by <span class="geo-noun">clicks</span>. Hover a ZIP for details, click to zoom.</p></div>
+      <div class="sn-seg" id="map-views" role="group" aria-label="Map view"></div>
+    </div>
+    <div class="sn-map-layout">
+      <div class="sn-map dash-skeleton" id="map-box" data-source="geo">
+      </div>
+      <div class="sn-rel sn-map-side"><div class="sn-side-inner">
+        <input class="sn-search" id="zip-search" type="search" placeholder="Search ZIP or town" aria-label="Search ZIP codes">
+        <div class="sn-table-wrap">
+          <table class="sn-table sn-clickable" id="zip-table" data-source="geo" data-row-key="campaign,zip_code">
+            <thead><tr>
+              <th data-field="zip_code"><button>ZIP</button></th>
+              <th data-field="city"><button>Town</button></th>
+              <th data-field="clicks"><button>Clicks</button></th>
+              <th data-field="impressions"><button>Impr.</button></th>
+              <th data-field="ctr"><button>CTR</button></th>
+              <th data-field="video_completed" class="sn-vid"><button>Completed</button></th>
+              <th data-field="conversions" class="sn-hide-narrow"><button>Conv.</button></th>
+            </tr></thead><tbody></tbody>
+          </table>
+        </div>
+      </div></div>
+    </div>
+    <div class="sn-legend"><span id="map-legend" class="sn-legend"></span><span class="sn-muted" id="zip-outlines" data-source="zip_shapes counties basemap">Outlines loading…</span></div>
+    <p class="sn-foot" id="geo-foot">
+      <span data-source="geo_coverage" data-where="campaign=all" data-field="mapped_zips">—</span> ZIP codes on the map.
+      <span data-source="geo_coverage" data-where="campaign=all" data-field="clicks_without_zip">—</span> <span class="geo-noun">clicks</span> had no ZIP code in StackAdapt’s geo report, and
+      <span data-source="geo_coverage" data-where="campaign=all" data-field="unplaced_zips">—</span> ZIP codes (building or P.O. box ZIPs, <span data-source="geo_coverage" data-where="campaign=all" data-field="unplaced_zip_clicks">—</span> <span class="geo-noun">clicks</span>) have no boundary to draw. ZIP shapes come from the public US Census ZCTA boundaries in BigQuery.
+    </p>
+  </section>
+
+  <section class="sn-card sn-anim" id="campaigns">
+    <div><h2>Campaigns in this group</h2><p class="sn-sub">Click a row to filter the whole dashboard to that campaign.</p></div>
+    <div class="sn-table-wrap" style="border-top:0;">
+      <table class="sn-table sn-clickable" id="campaign-table" data-source="campaigns" data-row-key="campaign_id">
+        <thead><tr>
+          <th data-field="campaign_name"><button>Campaign</button></th>
+          <th data-field="impressions"><button>Impressions</button></th>
+          <th data-field="clicks"><button>Clicks</button></th>
+          <th data-field="ctr"><button>CTR</button></th>
+          <th data-field="cpc"><button>CPC</button></th>
+          <th data-field="conversions"><button>Conv.</button></th>
+          <th data-field="video_completed" class="sn-vid"><button>Completed</button></th>
+          <th data-field="vcr" class="sn-vid"><button>VCR</button></th>
+          <th data-field="avg_time_on_site_sec" class="sn-hide-narrow"><button>Avg. time</button></th>
+          <th data-field="spend" class="sn-hide-narrow"><button>Spend</button></th>
+        </tr></thead><tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="sn-grid">
+    <section class="sn-card sn-anim" id="conversion-trackers">
+      <div><h2>Conversion trackers</h2><p class="sn-sub">Conversions per tracker, split by what preceded them.</p></div>
+      <div class="sn-legend"><span><i id="lg-click"></i>After a click</span><span><i id="lg-imp"></i>After an impression (view-through)</span></div>
+      <div class="sn-bars sn-rel dash-skeleton" id="tracker-bars" data-source="trackers"></div>
+    </section>
+    <section class="sn-card sn-anim" id="devices">
+      <div><h2 class="sn-mtitle" data-base="by device">Clicks by device</h2><p class="sn-sub">Where the ads were seen.</p></div>
+      <div class="sn-bars sn-rel dash-skeleton" id="device-bars" data-source="devices"></div>
+    </section>
+  </div>
+
+  <div class="sn-grid">
+    <section class="sn-card sn-anim" id="demographics">
+      <div><h2 class="sn-mtitle" data-base="by demographic segment">Clicks by demographic segment</h2><p class="sn-sub">Impressions and spend are estimated: StackAdapt reports them as each segment’s share of the day. Only users with a known age or gender are counted.</p></div>
+      <div class="bx-group">Age</div>
+      <div class="sn-bars sn-rel dash-skeleton" id="age-bars" data-source="demographics"></div>
+      <div class="bx-group">Gender</div>
+      <div class="sn-bars sn-rel dash-skeleton" id="gender-bars" data-source="demographics"></div>
+    </section>
+    <section class="sn-card sn-anim" id="audiences">
+      <div><h2 class="sn-mtitle" data-base="by audience segment">Clicks by audience segment</h2><p class="sn-sub">Targeted audiences and lookalike expansions, with the data provider underneath.</p></div>
+      <div class="sn-bars sn-rel dash-skeleton" id="audience-bars" data-source="audiences"></div>
+    </section>
+  </div>
+
+  <section class="sn-card sn-anim" id="domains">
+    <div class="sn-card-head">
+      <div><h2 class="sn-mtitle" data-base="by site or app (top 12)">Clicks by site or app (top 12)</h2><p class="sn-sub">Publisher domains and in-app placements.</p></div>
+    </div>
+    <div class="sn-bars sn-rel dash-skeleton" id="domain-bars" data-source="domains"></div>
+    <details class="sn-more" id="domains-all">
+      <summary>All sites and apps</summary>
+      <input class="sn-search" id="domain-search" type="search" placeholder="Search sites" aria-label="Search sites and apps" style="margin:6px 0;">
+      <div class="sn-table-wrap">
+        <table class="sn-table" id="domain-table" data-source="domains" data-row-key="campaign,domain">
+          <thead><tr>
+            <th data-field="site_or_app"><button>Site or app</button></th>
+            <th data-field="inventory" class="sn-hide-narrow"><button>Type</button></th>
+            <th data-field="impressions"><button>Impressions</button></th>
+            <th data-field="clicks"><button>Clicks</button></th>
+            <th data-field="ctr"><button>CTR</button></th>
+            <th data-field="cpc" class="sn-hide-narrow"><button>CPC</button></th>
+            <th data-field="conversions"><button>Conv.</button></th>
+            <th data-field="video_completed" class="sn-vid"><button>Completed</button></th>
+            <th data-field="vcr" class="sn-vid"><button>VCR</button></th>
+            <th data-field="avg_time_on_site_sec" class="sn-hide-narrow"><button>Avg. time</button></th>
+          </tr></thead><tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <p class="sn-foot">CTR and cost per click are recalculated from summed clicks, impressions and spend. Average time on site is StackAdapt’s daily figure weighted by clicks; days without a tracked visit are left out.</p>
+  <img class="sn-brand" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDA3IiBoZWlnaHQ9Ijc3IiB2aWV3Qm94PSIwIDAgNDA3IDc3IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMjguNDQ0OCA0NS41NjU4TDI4LjUzNTIgMjMuMjM1OEMyNC4zMjk2IDI1LjEzODEgMjEuMzkwMSAyOS4zOTU4IDIxLjM0NDkgMzQuMzc4MUMyMS4zNDQ5IDM5LjMxNTIgMjQuMjM5MSA0My42MTgxIDI4LjQ0NDggNDUuNTY1OFpNMzMuNzM1OCAxNi4xMjQ2QzIzLjY1MTIgMTYuMTI0NiAxNS40MjA4IDI0LjIzMjIgMTUuMzc1NiAzNC4zMzI4QzE1LjMzMDMgNDQuNDMzNCAyMy40NzAzIDUyLjY3NjkgMzMuNTU0OSA1Mi43MjIyQzQzLjYzOTQgNTIuNzIyMiA1MS44Njk5IDQ0LjYxNDYgNTEuOTE1MSAzNC41MTRDNTEuOTE1MSAyNC40MTM0IDQzLjgyMDMgMTYuMTY5OSAzMy43MzU4IDE2LjEyNDZaTTMxLjc5MTIgNTAuMTg1OEMyMy44NzczIDQ5LjI3OTkgMTcuNzcyMyA0Mi41MzExIDE3LjgxNzYgMzQuMzc4MUMxNy44MTc2IDI2LjIyNTIgMjQuMDEzIDE5LjUyMTcgMzEuOTI2OSAxOC43MDY0TDMxLjc5MTIgNTAuMjMxMVY1MC4xODU4Wk0zNS4zMTg2IDUwLjE4NThMMzUuNDU0MiAxOC42NjExQzQyLjc4MDIgMTkuNTIxNyA0OC41MjM0IDI1LjM2NDYgNDkuMzM3NCAzMi43MDIySDQ1Ljc2NDlDNDUuMTc3IDI4LjQ4OTkgNDIuNTA4OSAyNS4wMDIyIDM4LjgwMDcgMjMuMjgxMVYzMi43NDc1SDQzLjIzMjRWMzYuMDk5M0gzOC43NTU0VjQ1LjU2NThDNDIuNDE4NCA0My44ODk5IDQ1LjEzMTggNDAuNDAyMiA0NS43NjQ5IDM2LjIzNTJINDkuMzM3NEM0OC40NzgyIDQzLjU3MjggNDIuNjQ0NiA0OS4zNzA1IDM1LjMxODYgNTAuMTQwNVY1MC4xODU4Wk0zMy43MzU4IDEyLjA5MzRDMjEuNDM1MyAxMi4wNDgxIDExLjM5NiAyMS45Njc1IDExLjM1MDggMzQuMzMyOEMxMS4zMDU2IDQ2LjY1MjggMjEuMjA5MiA1Ni43MDgxIDMzLjU1NDkgNTYuNzUzNEM0NS44NTUzIDU2Ljc1MzQgNTUuODk0NyA0Ni44NzkzIDU1LjkzOTkgMzQuNTE0QzU1LjkzOTkgMjIuMTk0IDQ2LjA4MTQgMTIuMTM4NyAzMy43MzU4IDEyLjA5MzRaTTMzLjU1NDkgNTQuNTM0QzIyLjQ3NTQgNTQuNTM0IDEzLjUyMTQgNDUuNDI5OSAxMy41NjY3IDM0LjMzMjhDMTMuNjExOSAyMy4yMzU4IDIyLjY1NjMgMTQuMjY3NSAzMy43MzU4IDE0LjMxMjhDNDQuODE1MiAxNC4zNTgxIDUzLjc2OTIgMjMuNDE2OSA1My43MjQgMzQuNTE0QzUzLjcyNCA0NS42MTExIDQ0LjYzNDMgNTQuNTc5MyAzMy41NTQ5IDU0LjUzNFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xMTQuNTQ4IDI3Ljg1NTlDMTA3LjA4NiAyNy44NTU5IDEwMS42MTQgMzMuMzM2NSAxMDEuNjE0IDQwLjUzODJDMTAxLjYxNCA0Ny43NCAxMDcuMTMxIDUzLjIyMDYgMTE0LjU0OCA1My4yMjA2QzEyMS45NjQgNTMuMjIwNiAxMjcuNDgxIDQ3LjgzMDYgMTI3LjQ4MSA0MC41MzgyQzEyNy40ODEgMzMuMjQ1OSAxMjIuMDEgMjcuODU1OSAxMTQuNTQ4IDI3Ljg1NTlaTTExNSA1Mi4yNjk0QzEwOS42MTkgNTIuMjY5NCAxMDYuNTg5IDQ3LjMzMjMgMTA2LjU4OSAzOS41ODcxQzEwNi41ODkgMzEuODQxOCAxMDkuMjU3IDI4Ljg1MjMgMTE0LjA1IDI4Ljg1MjNDMTE4Ljg0NCAyOC44NTIzIDEyMi40NjIgMzMuODM0NyAxMjIuNDYyIDQxLjUzNDdDMTIyLjQ2MiA0OS4yMzQ3IDExOS43OTQgNTIuMjY5NCAxMTUgNTIuMjY5NFpNMTU1LjkyNiA1Mi4yNjk0SDE1NC45MzFDMTUyLjgwNiA1Mi4yNjk0IDE1MS44MTEgNTEuMTgyMyAxNTEuODExIDQ4LjMyODhWMjguMDgyM0gxNTEuNDA0QzE0OC45NjIgMjguMjYzNSAxNDYuMjk0IDI4LjM1NDEgMTQ0LjMwNCAyOC4zNTQxSDE0My4zMDlWMjguODUyM0gxNDQuMzA0QzE0Ni40MyAyOC44NTIzIDE0Ny40MjQgMjkuOTM5NCAxNDcuNDI0IDMyLjc5MjlWNDcuODMwNkMxNDQuMzk1IDUwLjUwMjkgMTQyLjM2IDUxLjMxODIgMTM5Ljg3MiA1MS4zMTgyQzEzNy4zODUgNTEuMzE4MiAxMzUuMzUgNDkuMzI1MyAxMzUuMzUgNDQuNTY5NFYyOC4wODIzSDEzNC45NDNDMTMyLjUwMSAyOC4yNjM1IDEyOS44MzMgMjguMzU0MSAxMjcuODQzIDI4LjM1NDFIMTI2Ljg0OFYyOC44NTIzSDEyNy44NDNDMTI5Ljk2OSAyOC44NTIzIDEzMC45NjQgMjkuOTM5NCAxMzAuOTY0IDMyLjc5MjlWNDUuMjAzNUMxMzAuOTY0IDUwLjcyOTQgMTM0LjM1NSA1My4yNjU5IDEzOC42OTcgNTMuMjY1OUMxNDMuMDM4IDUzLjI2NTkgMTQzLjYyNiA1Mi40NTA2IDE0Ny40MjQgNDguNjQ1OVY1Mi44MTI5TDE0Ny44MzEgNTMuMDM5NEMxNTAuMjczIDUyLjkwMzUgMTUyLjk0MiA1Mi44MTI5IDE1NC45MzEgNTIuODEyOUgxNTUuOTI2VjUyLjMxNDdWNTIuMjY5NFpNMTcwLjM1MiA0OS4zMjUzSDE2My4wMjZDMTYwLjY3NSA0OS4zMjUzIDE1OS44NjEgNDguNTEgMTU5Ljg2MSA0Ny4yODcxQzE1OS44NjEgNDYuMDY0MSAxNjEuMTI3IDQ0Ljg0MTIgMTYzLjQzMyA0My45MzUzQzE2NC41MTggNDQuMjk3NiAxNjUuNjk0IDQ0LjQ3ODggMTY2LjkxNSA0NC40Nzg4QzE3Mi4zODcgNDQuNDc4OCAxNzYuNDEyIDQwLjkwMDYgMTc2LjQxMiAzNi4xOUMxNzYuNDEyIDMxLjQ3OTQgMTc0LjAxNSAyOS4zNTA2IDE2OS42NzQgMjguMjE4MkwxNzguMDg1IDI4Ljg1MjNWMjUuMTM4MkMxNzIuNDMyIDI3LjgxMDYgMTY5LjI2NyAyNy4xNzY1IDE2NC43NDUgMjguMDgyM0MxNjAuNTM5IDI4Ljg5NzYgMTU3LjM3MyAzMS43NTEyIDE1Ny4zNzMgMzYuMTlDMTU3LjM3MyA0MC42Mjg4IDE1OS4zNjMgNDIuMzA0NyAxNjIuNDgzIDQzLjYxODJDMTU4Ljk1NiA0NS4zODQ3IDE1Ni4zMzMgNDcuMjQxOCAxNTYuMzMzIDQ5LjY0MjNDMTU2LjMzMyA1Mi4wNDI5IDE1OC4wOTcgNTIuODU4MiAxNjAuNjc1IDUzLjIyMDZDMTU3LjE0NyA1NC45ODcxIDE1NS4wNjcgNTcuMjUxOCAxNTUuMDY3IDU5LjUxNjVDMTU1LjA2NyA2MS43ODEyIDE1Ny43MzUgNjUuMDQyNCAxNjQuODggNjUuMDQyNEMxNzIuMDI1IDY1LjA0MjQgMTc4LjYyOCA2MS4wMTEyIDE3OC42MjggNTUuNzExOEMxNzguNjI4IDUwLjQxMjMgMTc2LjgxOSA0OS40MTU5IDE3MC4zNTIgNDkuNDE1OVY0OS4zMjUzWk0xNjEuODA1IDM1LjE0ODJDMTYxLjgwNSAzMS40Nzk0IDE2My4yMDcgMjguNzYxOCAxNjYuMzI3IDI4Ljc2MThDMTY5LjQ0OCAyOC43NjE4IDE3MS45MzUgMzIuMzQgMTcxLjkzNSAzNy4wOTU5QzE3MS45MzUgNDEuODUxOCAxNzAuNTMzIDQzLjQ4MjMgMTY3LjM2NyA0My40ODIzQzE2NC4yMDIgNDMuNDgyMyAxNjEuODA1IDM5LjkwNDEgMTYxLjgwNSAzNS4xNDgyWk0xNjYuMTAxIDYyLjMyNDdDMTYwLjA4NyA2Mi4zMjQ3IDE1OC4wNTIgNjAuMzc3MSAxNTguMDUyIDU3Ljg0MDZDMTU4LjA1MiA1NS4zMDQxIDE1OC43MyA1NC44NTEyIDE2MS44MDUgNTMuMjY1OUgxNzAuMDgxQzE3Ni4xNDEgNTMuMjY1OSAxNzcuNDk3IDU0LjE3MTggMTc3LjQ5NyA1Ni4wMjg4QzE3Ny40OTcgNTkuNjk3NiAxNzIuNDc4IDYyLjMyNDcgMTY2LjEwMSA2Mi4zMjQ3Wk0yMTIuMDAyIDQ4LjI4MzVWMzUuOTE4MkMyMTIuMDAyIDMwLjM5MjMgMjA4LjY1NSAyNy44MTA2IDIwMy42ODEgMjcuODEwNkMxOTguNzA2IDI3LjgxMDYgMTk1LjQ5NiAzMC45MzU5IDE5My45MTMgMzQuNDIzNUwxOTQuNTQ2IDM0LjY5NTNDMTk2LjAzOCAzMS40Nzk0IDE5OS4wNjggMjkuNzEyOSAyMDIuMjM0IDI5LjcxMjlDMjA1LjM5OSAyOS43MTI5IDIwNy42MTUgMzEuNDc5NCAyMDcuNjE1IDM2LjU1MjNWMzguMzE4OEMyMDAuMTU0IDQxLjg5NzEgMTkzLjIzNSA0MS43MTU5IDE5My4yMzUgNDcuNzg1M0MxOTMuMjM1IDUzLjg1NDcgMTk1Ljk0OCA1My4yMjA2IDE5OC44ODcgNTMuMjIwNkMyMDEuODI3IDUzLjIyMDYgMjA0LjMxNCA1MS42MzUzIDIwNy42MTUgNDguMjM4MlY1Mi43MjIzTDIwOC4wMjIgNTIuOTQ4OEMyMTAuNDY0IDUyLjgxMjkgMjEzLjEzMiA1Mi43MjIzIDIxNS4xMjIgNTIuNzIyM0gyMTYuMTE3VjUyLjIyNDFIMjE1LjEyMkMyMTIuOTk3IDUyLjIyNDEgMjEyLjAwMiA1MS4xMzcxIDIxMi4wMDIgNDguMjgzNVpNMjA3LjYxNSA0Ny4zMzIzQzIwNC45OTIgNDkuOTU5NCAyMDMuNSA1MC42ODQxIDIwMS41MSA1MC42ODQxQzE5OS41MiA1MC42ODQxIDE5Ny43MTIgNDkuMDUzNSAxOTcuNzEyIDQ2Ljg3OTRDMTk3LjcxMiA0My41NzI5IDIwMC43ODcgNDIuMjU5NCAyMDcuNjE1IDM5LjA4ODhWNDcuMzMyM1pNMTg4LjM1MSA0OC4yODM1VjE1LjYyNjVIMTg3Ljg1M0wxODAuMzQ2IDE3LjM0NzZWMTcuODQ1OUgxODAuODQ0QzE4Mi45NjkgMTcuODQ1OSAxODMuOTY0IDE4LjkzMjkgMTgzLjk2NCAyMS43ODY1VjQ4LjI4MzVDMTgzLjk2NCA1MS4xODIzIDE4Mi45NjkgNTIuMjI0MSAxODAuODQ0IDUyLjIyNDFIMTc5Ljg0OVY1Mi43MjIzSDE5Mi40MjFWNTIuMjI0MUgxOTEuNDI2QzE4OS4zIDUyLjIyNDEgMTg4LjMwNSA1MS4xMzcxIDE4OC4zMDUgNDguMjgzNUgxODguMzUxWk0yMTkuODcgMzIuNjU3MUMyMTkuODcgMzAuMjU2NSAyMjEuNzI1IDI4LjgwNzEgMjI0Ljc1NCAyOC44MDcxQzIyNy43ODQgMjguODA3MSAyMzAuNTQzIDMwLjM0NzEgMjMxLjE3NiAzNS42MDEySDIzMS43MTlMMjMxLjQwMiAyOS44NDg4QzIzMC45OTUgMjkuNTMxOCAyMzAuNTQzIDI5LjIxNDcgMjMwLjE4MSAyOS4wMzM1QzIyOC45NiAyOC4zOTk0IDIyNy4xNTEgMjcuODEwNiAyMjQuNzA5IDI3LjgxMDZDMjE5Ljk2MSAyNy44MTA2IDIxNi44ODYgMzAuMDc1MyAyMTYuODg2IDMzLjk3MDZDMjE2Ljg4NiA0Mi45ODQxIDIzMCA0MS4wMzY1IDIzMCA0Ny45MjEyQzIzMCA1NC44MDU5IDIyNy44NzUgNTIuMjI0MSAyMjQuODQ1IDUyLjIyNDFDMjIxLjgxNSA1Mi4yMjQxIDIxOC41MTQgNTAuNjM4OCAyMTYuNTI0IDQ0Ljg4NjVMMjE1Ljk4MSA0NS4wMjIzTDIxNy4xMTIgNTAuODY1M0MyMTcuNTE5IDUxLjE4MjQgMjE4LjA2MiA1MS40OTk0IDIxOC41MTQgNTEuNzI1OUMyMTguNTE0IDUxLjcyNTkgMjE4LjYwNCA1MS43MjU5IDIxOC42NDkgNTEuNzI1OUMyMTguNzQgNTEuNzI1OSAyMTguODMgNTEuODE2NSAyMTguOTIxIDUxLjg2MThIMjE4Ljk2NkMyMTkuMDU2IDUxLjg2MTggMjE5LjEwMiA1MS44NjE4IDIxOS4xNDcgNTEuOTUyM0MyMjAuNzc1IDUyLjY3NzEgMjIyLjUzOSA1My4xMyAyMjQuODQ1IDUzLjEzQzIyOS42ODQgNTMuMTMgMjMyLjk0IDUwLjIzMTIgMjMyLjk0IDQ1LjY1NjVDMjMyLjk0IDM2LjkxNDcgMjE5LjgyNSAzNy45NTY1IDIxOS44MjUgMzIuNTY2NUwyMTkuODcgMzIuNjU3MVpNNzguMDUzNiAxNi4xMjQ3SDYyLjI3MVYxNi42MjI5SDYzLjI2NTlDNjUuMzkxMyAxNi42MjI5IDY2LjM4NjIgMTcuNzEgNjYuMzg2MiAyMC41NjM1VjQ4LjI4MzVDNjYuMzg2MiA1MS4xODIzIDY1LjM5MTMgNTIuMjI0MSA2My4yNjU5IDUyLjIyNDFINjIuMjcxVjUyLjcyMjNINzguMDUzNkM5MS4zOTQxIDUyLjcyMjMgOTkuMzUzMiA0NC45NzcxIDk5LjM1MzIgMzQuNDIzNUM5OS4zNTMyIDIzLjg3IDkxLjM5NDEgMTYuMTI0NyA3OC4wNTM2IDE2LjEyNDdaTTc4LjA1MzYgNTEuNjgwNkg3MS4xMzQ2VjE3LjIxMThINzguMDUzNkM4OS41NCAxNy4yMTE4IDk0LjI4ODMgMjQuNzMwNiA5NC4yODgzIDM0LjQ2ODhDOTQuMjg4MyA0NC4yMDcxIDg5LjcyMDkgNTEuNjgwNiA3OC4wNTM2IDUxLjY4MDZaTTM0MC43NDkgNDguMjgzNVYzNS44NzI5QzM0MC43NDkgMzAuMzQ3MSAzMzcuNTg0IDI3LjgxMDYgMzMzLjQ2OSAyNy44MTA2QzMyOS4zNTMgMjcuODEwNiAzMjguNzIgMjguNzYxOCAzMjQuNzQxIDMyLjg4MzVDMzIzLjgzNiAyOS4zOTU5IDMyMS4xMjMgMjcuODEwNiAzMTcuODY3IDI3LjgxMDZDMzE0LjYxMSAyNy44MTA2IDMxMy4zIDI4LjcxNjUgMzA5LjYzNyAzMi40MzA2VjI3LjY3NDdMMzAxLjYzMiAyOS40ODY1VjI5Ljk4NDdIMzAyLjEzQzMwNC4yNTUgMjkuOTg0NyAzMDUuMjUgMzEuMDcxOCAzMDUuMjUgMzMuOTI1M1Y0OC4yMzgyQzMwNS4yNSA1MS4xMzcxIDMwNC4yNTUgNTIuMTc4OCAzMDIuMTMgNTIuMTc4OEgzMDAuNzI4QzI5OC42MDIgNTIuMTc4OCAyOTcuNjA3IDUxLjA5MTggMjk3LjYwNyA0OC4yMzgyVjI3LjY3NDdMMjg5LjYwMyAyOS40ODY1VjI5Ljk4NDdIMjkwLjEwMUMyOTIuMjI2IDI5Ljk4NDcgMjkzLjIyMSAzMS4wNzE4IDI5My4yMjEgMzMuOTI1M1Y0OC4yMzgyQzI5My4yMjEgNTEuMTM3MSAyOTIuMjI2IDUyLjE3ODggMjkwLjEwMSA1Mi4xNzg4SDI4OC4zMzdDMjg2LjIxMSA1Mi4xNzg4IDI4NS4yMTcgNTEuMDkxOCAyODUuMjE3IDQ4LjIzODJWMTUuNjI2NUgyODQuNzE5TDI3Ny4yMTIgMTcuMzQ3NlYxNy44NDU5SDI3Ny43MUMyNzkuODM1IDE3Ljg0NTkgMjgwLjgzIDE4LjkzMjkgMjgwLjgzIDIxLjc4NjVWNDguMjgzNUMyODAuODMgNTEuMTgyMyAyNzkuODM1IDUyLjIyNDEgMjc3LjcxIDUyLjIyNDFIMjc2LjQ4OUMyNzQuMzYzIDUyLjIyNDEgMjczLjM2OCA1MS4xMzcxIDI3My4zNjggNDguMjgzNVYxNS42MjY1SDI3Mi44NzFMMjY1LjM2NCAxNy4zNDc2VjE3Ljg0NTlIMjY1Ljg2MUMyNjcuOTg3IDE3Ljg0NTkgMjY4Ljk4MiAxOC45MzI5IDI2OC45ODIgMjEuNzg2NVY0OC4yODM1QzI2OC45ODIgNTEuMTgyMyAyNjcuOTg3IDUyLjIyNDEgMjY1Ljg2MSA1Mi4yMjQxSDI2NC44NjdWNTIuNzIyM0gzMTQuNTIxVjUyLjIyNDFIMzEyLjc1N0MzMTAuNjMxIDUyLjIyNDEgMzA5LjYzNyA1MS4xMzcxIDMwOS42MzcgNDguMjgzNVYzMy4yNDU5QzMxMS45ODggMzEuMjUyOSAzMTMuNzUyIDMwLjc1NDcgMzE1Ljc0MiAzMC43NTQ3QzMxOC43MjYgMzAuNzU0NyAzMjAuNzYxIDMyLjc0NzYgMzIwLjc2MSAzNy41MDM1VjQ4LjI4MzVDMzIwLjc2MSA1MS4xODIzIDMxOS43NjYgNTIuMjI0MSAzMTcuNjQxIDUyLjIyNDFIMzE2LjY0NlY1Mi43MjIzSDMyOS4yMThWNTIuMjI0MUgzMjguMjIzQzMyNi4wOTcgNTIuMjI0MSAzMjUuMTAzIDUxLjEzNzEgMzI1LjEwMyA0OC4yODM1VjM1Ljg3MjlDMzI1LjEwMyAzNS4wMTIzIDMyNS4wMTIgMzQuMTk3MSAzMjQuODc2IDMzLjUxNzZDMzI3LjQwOSAzMS4yNTI5IDMyOS4yMTggMzAuNzU0NyAzMzEuMjk4IDMwLjc1NDdDMzM0LjI4MyAzMC43NTQ3IDMzNi4zMTggMzIuNzQ3NiAzMzYuMzE4IDM3LjUwMzVWNDguMjgzNUMzMzYuMzE4IDUxLjE4MjMgMzM1LjMyMyA1Mi4yMjQxIDMzMy4xOTcgNTIuMjI0MUgzMzIuMjAyVjUyLjcyMjNIMzQ0Ljc3NFY1Mi4yMjQxSDM0My43NzlDMzQxLjY1NCA1Mi4yMjQxIDM0MC42NTkgNTEuMTM3MSAzNDAuNjU5IDQ4LjI4MzVIMzQwLjc0OVpNMzk0Ljc0NSA1Mi4yNjk0QzM5Mi42MTkgNTIuMjY5NCAzOTEuNjI0IDUxLjE4MjMgMzkxLjYyNCA0OC4zMjg4VjM1LjkxODJDMzkxLjYyNCAzMC4zOTIzIDM4OC4yMzMgMjcuODU1OSAzODMuODkxIDI3Ljg1NTlDMzc5LjU1IDI3Ljg1NTkgMzc4Ljk2MiAyOC42NzEyIDM3NS4xNjQgMzIuNDc1OVYyNy43MkwzNjcuMTU5IDI5LjUzMThWMzAuMDNIMzY3LjY1N0MzNjkuNzgyIDMwLjAzIDM3MC43NzcgMzEuMTE3MSAzNzAuNzc3IDMzLjk3MDZWNDguMjgzNUMzNzAuNzc3IDUxLjE4MjMgMzY5Ljc4MiA1Mi4yMjQxIDM2Ny42NTcgNTIuMjI0MUgzNjYuNzUyQzM2NC42MjcgNTIuMjI0MSAzNjMuNjMyIDUxLjEzNzEgMzYzLjYzMiA0OC4yODM1VjM1LjkxODJDMzYzLjYzMiAzMC4zOTIzIDM2MC4yODUgMjcuODEwNiAzNTUuMzExIDI3LjgxMDZDMzUwLjMzNyAyNy44MTA2IDM0Ny4xMjYgMzAuOTM1OSAzNDUuNTQzIDM0LjQyMzVMMzQ2LjE3NiAzNC42OTUzQzM0Ny42NjggMzEuNDc5NCAzNTAuNjk4IDI5LjcxMjkgMzUzLjg2NCAyOS43MTI5QzM1Ny4wMjkgMjkuNzEyOSAzNTkuMjQ1IDMxLjQ3OTQgMzU5LjI0NSAzNi41NTIzVjM4LjMxODhDMzUxLjc4NCA0MS44OTcxIDM0NC44NjUgNDEuNzE1OSAzNDQuODY1IDQ3Ljc4NTNDMzQ0Ljg2NSA1My44NTQ3IDM0Ny41NzggNTMuMjIwNiAzNTAuNTE3IDUzLjIyMDZDMzUzLjQ1NyA1My4yMjA2IDM1NS45NDQgNTEuNjM1MyAzNTkuMjQ1IDQ4LjIzODJWNTIuNzIyM0wzNTkuNjUyIDUyLjk0ODhDMzYyLjA5NCA1Mi44MTI5IDM2NC43NjIgNTIuNzIyMyAzNjYuNzUyIDUyLjcyMjNIMzc5LjIzNFY1Mi4yMjQxSDM3OC4yMzlDMzc2LjExMyA1Mi4yMjQxIDM3NS4xMTggNTEuMTM3MSAzNzUuMTE4IDQ4LjI4MzVWMzMuMjQ1OUMzNzcuNjA2IDMxLjIwNzYgMzc5LjU1IDMwLjc1NDcgMzgxLjcyMSAzMC43NTQ3QzM4NC45NzcgMzAuNzU0NyAzODcuMjM4IDMyLjc0NzYgMzg3LjIzOCAzNy41MDM1VjQ4LjI4MzVDMzg3LjIzOCA1MS4xODIzIDM4Ni4yNDMgNTIuMjI0MSAzODQuMTE4IDUyLjIyNDFIMzgzLjEyM1Y1Mi43MjIzSDM5NS42OTRWNTIuMjI0MUgzOTQuN0gzOTQuNzQ1VjUyLjI2OTRaTTM1OS4yNDUgNDcuMzMyM0MzNTYuNjIyIDQ5Ljk1OTQgMzU1LjEzIDUwLjY4NDEgMzUzLjE0IDUwLjY4NDFDMzUxLjE1MSA1MC42ODQxIDM0OS4zNDIgNDkuMDUzNSAzNDkuMzQyIDQ2Ljg3OTRDMzQ5LjM0MiA0My41NzI5IDM1Mi40MTcgNDIuMjU5NCAzNTkuMjQ1IDM5LjA4ODhWNDcuMzMyM1pNMjk1LjA3NSAyMy4yMzU5QzI5Ni43OTMgMjMuMjM1OSAyOTguMTk1IDIxLjgzMTggMjk4LjE5NSAyMC4xMTA2QzI5OC4xOTUgMTguMzg5NCAyOTYuNzkzIDE2Ljk4NTMgMjk1LjA3NSAxNi45ODUzQzI5My4zNTcgMTYuOTg1MyAyOTEuOTU1IDE4LjM4OTQgMjkxLjk1NSAyMC4xMTA2QzI5MS45NTUgMjEuODMxOCAyOTMuMzU3IDIzLjIzNTkgMjk1LjA3NSAyMy4yMzU5Wk0yNjQuODY3IDQ0LjkzMThMMjYzLjc4MSA0Ny4xOTY1QzI2Mi42MDUgNDkuOTE0MSAyNjAuNTI1IDUxLjY4MDYgMjU1LjQxNSA1MS42ODA2SDI0NS4zNzZWMzQuMzc4MkgyNTMuMzhDMjU2Ljk5OCAzNC4zNzgyIDI1OC4zNTUgMzUuMzI5NCAyNTguNzYyIDM3LjMyMjNDMjU4Ljc2MiAzNy41OTQxIDI1OC45ODggMzguNTQ1MyAyNTkuMTIzIDM5LjA4ODhIMjU5LjQ0VjI4LjYyNTlIMjU5LjEyM0MyNTkuMDMzIDI5LjEyNDEgMjU4Ljg1MiAzMC4yMTEyIDI1OC43NjIgMzAuNDM3NkMyNTguMzU1IDMyLjM4NTMgMjU2Ljk1MyAzMy4zMzY1IDI1My4zOCAzMy4zMzY1SDI0NS4zNzZWMTcuNDM4MkgyNTUuNTk2QzI2MC4yNTQgMTcuNDM4MiAyNjEuODM3IDE4LjkzMjkgMjYxLjkyNyAyMS4yNDI5QzI2MS45MjcgMjEuNjA1MyAyNjEuOTI3IDIyLjEwMzUgMjYyLjAxOCAyMi40MjA2SDI2Mi40MjVWMTYuMTdIMjM2LjUxMlYxNi42NjgySDIzNy41MDdDMjM5LjYzMyAxNi42NjgyIDI0MC42MjcgMTcuNzU1MyAyNDAuNjI3IDIwLjYwODhWNDguNjAwNkMyNDAuNjI3IDUxLjI3MjkgMjM5LjYzMyA1Mi4zMTQ3IDIzNy41MDcgNTIuMzE0N0gyMzYuNTEyVjUyLjgxMjlIMjYxLjUyQzI2Mi42OTYgNTIuODEyOSAyNjIuOTY3IDUyLjMxNDcgMjYzLjY0NiA1MC4wNUwyNjUuMDkzIDQ1LjA2NzZMMjY0LjgyMSA0NC45NzcxTDI2NC44NjcgNDQuOTMxOFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=" alt="Douglas Elliman" width="407" height="77">
+</div>
+
+<!-- site icons and world outlines ship as page files -->
+<script src="/assets/icons-1.js"></script>
+<script src="/assets/icons-2.js"></script>
+<script src="/assets/icons-3.js"></script>
+<script src="/assets/icons-4.js"></script>
+<script src="/assets/icons-5.js"></script>
+<script src="/assets/icons-6.js"></script>
+<script src="/assets/icons-7.js"></script>
+<script src="/assets/icons-8.js"></script>
+<script src="/assets/icons-9.js"></script>
+<script src="/assets/icons-10.js"></script>
+<script src="/assets/icons-11.js"></script>
+<script src="/assets/icons-12.js"></script>
+<script src="/assets/world-1.js"></script>
+<script src="/assets/world-2.js"></script>
+<script src="/assets/world-3.js"></script>
+<script>
+dash.calc('conv_split', {
+  inputs: ['totals'],
+  title: 'Click vs. view-through share',
+  description: 'For each campaign (and all), click conversions and impression conversions as a share of all conversions.',
+  fn: (totals) => totals.map((t) => {
+    const all = Number(t.conversions) || 0;
+    return {
+      campaign: t.campaign,
+      click_share: all ? (Number(t.click_conversions) || 0) / all : null,
+      impression_share: all ? (Number(t.impression_conversions) || 0) / all : null,
+    };
+  }),
+});
+
+dash.calc('highlights', {
+  inputs: ['campaigns', 'devices'],
+  title: 'Takeaway figures',
+  description: 'The campaign with the most clicks (completed views for video groups with no clicks) and its share; for each campaign (and all), the device with the most and its share.',
+  fn: (campaigns, devices) => {
+    const n = (v) => Number(v) || 0;
+    // Video/CTV groups with no clicks are ranked by completed views instead
+    const clicks = campaigns.reduce((a, c) => a + n(c.clicks), 0), views = campaigns.reduce((a, c) => a + n(c.video_completed), 0);
+    const key = clicks > 0 || views === 0 ? 'clicks' : 'video_completed';
+    let top = null, all = 0;
+    for (const c of campaigns) { all += n(c[key]); if (!top || n(c[key]) > n(top[key])) top = c; }
+    const keys = [...new Set(devices.map((d) => String(d.campaign)))];
+    return keys.map((k) => {
+      let dev = null, dAll = 0;
+      for (const d of devices) { if (String(d.campaign) !== k) continue; dAll += n(d[key]); if (!dev || n(d[key]) > n(dev[key])) dev = d; }
+      return {
+        campaign: k,
+        basis: key,
+        top_campaign: top ? top.campaign_name : null,
+        top_campaign_click_share: top && all ? n(top[key]) / all : null,
+        top_campaign_cpc: top && n(top.clicks) ? n(top.spend) / n(top.clicks) : null,
+        top_campaign_vcr: top && n(top.impressions) ? n(top.video_completed) / n(top.impressions) : null,
+        top_device: dev ? dev.device : null,
+        top_device_click_share: dev && dAll ? n(dev[key]) / dAll : null,
+      };
+    });
+  },
+});
+
+dash.calc('geo_coverage', {
+  inputs: ['totals', 'geo'],
+  title: 'Map coverage',
+  description: 'For each campaign (and all): clicks (completed views for video with no clicks) with no ZIP code, total minus the geo report, and ZIP codes with no boundary to draw.',
+  fn: (totals, geo) => totals.map((t) => {
+    const k = String(t.campaign);
+    // Video/CTV with no clicks: count completed views instead
+    const key = (Number(t.clicks) || 0) > 0 || !(Number(t.video_completed) > 0) ? 'clicks' : 'video_completed';
+    let zipClicks = 0, unplaced = 0, unplacedClicks = 0, count = 0;
+    for (const r of geo) {
+      if (String(r.campaign) !== k) continue;
+      const c = Number(r[key]) || 0;
+      count += 1; zipClicks += c;
+      if (r.lat === null || r.lat === undefined || r.lat === '') { unplaced += 1; unplacedClicks += c; }
+    }
+    return {
+      campaign: k,
+      mapped_zips: count - unplaced,
+      basis: key,
+      clicks_without_zip: Math.max(0, (Number(t[key]) || 0) - zipClicks),
+      unplaced_zips: unplaced,
+      unplaced_zip_clicks: unplacedClicks,
+    };
+  }),
+});
+</script>
+
+<script>
+(() => {
+  const MOTION = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  const D = (ms) => (MOTION ? ms : 0);
+  const num = (v) => (v === null || v === undefined || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
+  const fInt = d3.format(',');
+  const fMoney = (v) => '$' + d3.format(',.2f')(v);
+  const METRICS = {
+    clicks: { label: 'Clicks', f: (v) => fInt(Math.round(v)), kind: 'count' },
+    impressions: { label: 'Impressions', f: (v) => fInt(Math.round(v)), kind: 'count' },
+    ctr: { label: 'CTR', f: (v) => d3.format('.2%')(v), kind: 'rate' },
+    cpc: { label: 'CPC', f: fMoney, kind: 'rate' },
+    conversions: { label: 'Conversions', f: (v) => fInt(Math.round(v)), kind: 'count' },
+    avg_time_on_site_sec: { label: 'Avg. time on site', f: (v) => d3.format('.1f')(v) + 's', kind: 'rate' },
+    video_completed: { label: 'Completed views', f: (v) => fInt(Math.round(v)), kind: 'count', video: true },
+    vcr: { label: 'Completion rate', f: (v) => d3.format('.1%')(v), kind: 'rate', video: true },
+  };
+  // A campaign group or campaign counts as video/CTV when it has completed video views
+  const isVideo = () => { const r = rowsFor('totals')[0]; return !!r && (num(r.video_completed) || 0) > 0; };
+  const fmt = (m, v) => (v === null || v === undefined || Number.isNaN(v) ? '—' : METRICS[m].f(v));
+  const fDay = d3.utcFormat('%b %-d');
+  const fDayY = d3.utcFormat('%b %-d, %Y');
+  const parseDay = (s) => new Date(String(s).slice(0, 10) + 'T00:00:00Z');
+  // Brand palette from the Figma design: navy for the main series, warm gray for view-through / second series.
+  const BRAND = ['#081631', '#a29992', '#2e9e83', '#2892b9'];
+  const color = (i) => (i < BRAND.length ? BRAND[i] : dash.colors[i % dash.colors.length]);
+  let metric = 'clicks';
+  const firstDone = new Set();
+
+  // ---------- helpers ----------
+  const status = (id) => dash.data(id).status;
+  const isBad = (s) => s === 'error' || s === 'connect' || s === 'declined' || s === 'missing';
+  function prep(el, ids) {
+    const sts = ids.map(status);
+    if (sts.some(isBad)) {
+      el.classList.remove('dash-skeleton');
+      if (!el.classList.contains('sn-failed')) { el.replaceChildren(); el.classList.add('sn-failed'); el.textContent = 'Failed to load'; delete el.dataset.drawn; }
+      return false;
+    }
+    if (sts.some((s) => s !== 'ok')) { el.classList.add('dash-skeleton'); return false; }
+    if (el.classList.contains('sn-failed')) { el.classList.remove('sn-failed'); el.textContent = ''; }
+    el.classList.remove('dash-skeleton');
+    return true;
+  }
+  const rowsOf = (id) => (status(id) === 'ok' ? dash.data(id).data || [] : []);
+  // Every dataset with a campaign column holds one set of rows per campaign plus 'all'; the filter picks one
+  const cur = () => String(dash.params().campaign || 'all');
+  const rowsFor = (id) => rowsOf(id).filter((r) => String(r.campaign) === cur());
+  const whereCur = () => 'campaign=' + encodeURIComponent(cur());
+  const rowKey = (a, b) => encodeURIComponent(String(a)) + ',' + encodeURIComponent(String(b));
+
+  function tipLines(tip, title, lines) {
+    tip.replaceChildren();
+    const t = document.createElement('div'); t.className = 't'; t.textContent = title; tip.append(t);
+    for (const [k, v, hl] of lines) {
+      const l = document.createElement('div'); l.className = 'l' + (hl ? ' hl' : '');
+      const a = document.createElement('span'); a.textContent = k;
+      const b = document.createElement('span'); b.textContent = v;
+      l.append(a, b); tip.append(l);
+    }
+  }
+  function getTip(host) {
+    let tip = host.querySelector(':scope > .sn-tip');
+    if (!tip) { tip = document.createElement('div'); tip.className = 'sn-tip'; host.append(tip); }
+    return tip;
+  }
+  function placeTip(tip, host, event) {
+    const [x, y] = d3.pointer(event, host);
+    const w = tip.offsetWidth, h = tip.offsetHeight, W = host.clientWidth;
+    let left = x + 14; if (left + w > W - 4) left = Math.max(4, x - w - 14);
+    let top = y - h - 10; if (top < 4) top = y + 16;
+    tip.style.left = left + 'px'; tip.style.top = top + 'px'; tip.classList.add('on');
+  }
+  const metricLines = (r, keys) => (keys || Object.keys(METRICS)).filter((k) => k in r && (!METRICS[k].video || isVideo())).map((k) => [METRICS[k].label, fmt(k, num(r[k])), k === metric]);
+
+  function textWidth(svg, strings) {
+    const t = svg.append('text').attr('class', 'sn-measure').style('visibility', 'hidden');
+    let w = 0;
+    for (const s of strings) { t.text(s); w = Math.max(w, t.node().getComputedTextLength()); }
+    t.remove();
+    return w;
+  }
+
+  // ---------- metric picker ----------
+  const picker = document.getElementById('metric-picker');
+  for (const [k, m] of Object.entries(METRICS)) {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k; b.textContent = m.label; if (m.video) b.classList.add('sn-vid');
+    b.addEventListener('click', () => { metric = k; render(); });
+    picker.append(b);
+  }
+
+  // ---------- campaign filter ----------
+  const sel = document.getElementById('campaign-filter');
+  sel.addEventListener('change', () => dash.setParams({ campaign: sel.value || null }));
+
+  // ---------- KPI tiles ----------
+  function countUp(el, value, m, key) {
+    const text = fmt(m, value);
+    if (!MOTION || firstDone.has(key) || value === null) { el.textContent = text; firstDone.add(key); return; }
+    firstDone.add(key);
+    d3.select(el).transition().duration(1100).ease(d3.easeCubicOut)
+      .tween('text', () => (t) => { el.textContent = t >= 1 ? text : fmt(m, value * t); })
+      .on('end', () => { el.textContent = text; });
+  }
+  function drawKpis() {
+    const tiles = document.querySelectorAll('#kpis [data-source="totals"][data-field]');
+    const s = status('totals');
+    const r = rowsFor('totals')[0];
+    document.querySelectorAll('[data-source="totals"], [data-source="conv_split"], [data-source="geo_coverage"]').forEach((el) => { if (el.dataset.where) el.dataset.where = whereCur(); });
+    tiles.forEach((el) => {
+      const f = el.dataset.field;
+      if (isBad(s)) { el.classList.remove('dash-skeleton'); el.textContent = '—'; return; }
+      if (s !== 'ok' || !r) { el.classList.add('dash-skeleton'); return; }
+      el.classList.remove('dash-skeleton');
+      const v = num(r[f]);
+      if (f === 'spend') { el.textContent = v === null ? '—' : fMoney(v); return; }
+      const m = METRICS[f] ? f : 'conversions';
+      countUp(el, v, m, 'kpi-' + f);
+    });
+    // window
+    for (const id of ['win-start', 'win-end']) {
+      const el = document.getElementById(id);
+      if (s === 'ok' && r) { el.classList.remove('dash-skeleton'); const v = r[el.dataset.field]; el.textContent = v ? fDayY(parseDay(v)) : '—'; }
+      else if (isBad(s)) { el.classList.remove('dash-skeleton'); el.textContent = '—'; }
+    }
+    // conversion split
+    const sp = dash.data('conv_split');
+    const row = sp.status === 'ok' ? (sp.data || []).find((x) => String(x.campaign) === cur()) : null;
+    document.querySelectorAll('[data-source="conv_split"]').forEach((el) => {
+      const v = row ? num(row[el.dataset.field]) : null;
+      el.textContent = v === null ? '—' : d3.format('.0%')(v);
+    });
+    const c = document.getElementById('split-click'), i = document.getElementById('split-imp');
+    c.style.background = color(0); i.style.background = color(1);
+    requestAnimationFrame(() => {
+      c.style.width = row && row.click_share !== null ? (num(row.click_share) * 100) + '%' : '0';
+      i.style.width = row && row.impression_share !== null ? (num(row.impression_share) * 100) + '%' : '0';
+    });
+    // sparklines
+    const daily = rowsFor('daily').slice().sort((a, b) => String(a.day).localeCompare(String(b.day)));
+    document.querySelectorAll('#kpis .sn-spark').forEach((el) => {
+      if (!prep(el, ['daily'])) return;
+      drawSpark(el, daily, el.dataset.k);
+    });
+  }
+  function drawSpark(el, rows, k) {
+    const W = Math.max(80, el.clientWidth), H = 36;
+    const pts = rows.map((r, i) => ({ i, v: num(r[k]) }));
+    const x = d3.scaleLinear([0, Math.max(1, pts.length - 1)], [1, W - 4]);
+    const ext = d3.extent(pts, (d) => d.v);
+    const y = d3.scaleLinear([Math.min(0, ext[0] ?? 0), (ext[1] ?? 1) || 1], [H - 2, 3]);
+    const svg = d3.select(el).selectAll('svg').data([0]).join('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+    const gid = 'sg-' + k;
+    const defs = svg.selectAll('defs').data([0]).join('defs');
+    const lg = defs.selectAll('linearGradient').data([0]).join('linearGradient').attr('id', gid).attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
+    lg.selectAll('stop').data([[0, .26], [.25, .16], [.5, .08], [.75, .03], [1, 0]]).join('stop')
+      .attr('offset', (d) => d[0]).attr('style', (d) => `stop-color:${color(0)};stop-opacity:${d[1]}`);
+    const def = (d) => d.v !== null;
+    const area = d3.area().defined(def).x((d) => x(d.i)).y0(H).y1((d) => y(d.v));
+    const line = d3.line().defined(def).x((d) => x(d.i)).y((d) => y(d.v));
+    svg.selectAll('path.a').data([pts]).join('path').attr('class', 'a').style('fill', `url(#${gid})`).attr('d', area);
+    const p = svg.selectAll('path.l').data([pts]).join('path').attr('class', 'l').style('fill', 'none')
+      .style('stroke', color(0)).attr('stroke-width', 1.75).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', line);
+    const last = [...pts].reverse().find(def);
+    svg.selectAll('circle').data(last ? [last] : []).join('circle').attr('r', 2.5).style('fill', color(0)).attr('cx', (d) => x(d.i)).attr('cy', (d) => y(d.v));
+    const key = 'spark-' + k;
+    if (MOTION && !firstDone.has(key) && pts.length) {
+      firstDone.add(key);
+      const L = p.node().getTotalLength();
+      p.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L)
+        .transition().delay(300).duration(1400).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0)
+        .on('end', () => p.attr('stroke-dasharray', null));
+    } else firstDone.add(key);
+  }
+
+  // ---------- timeline ----------
+  function drawTimeline() {
+    const el = document.getElementById('timeline');
+    document.getElementById('over-time-title').textContent = METRICS[metric].label + ' over time';
+    if (!prep(el, ['daily'])) return;
+    const rows = rowsFor('daily').slice().sort((a, b) => String(a.day).localeCompare(String(b.day)));
+    const m = metric, isCount = METRICS[m].kind === 'count';
+    const W = Math.max(300, el.clientWidth), H = 260;
+    const data = rows.map((r) => ({ key: String(r.day).slice(0, 10), day: parseDay(r.day), r, v: num(r[m]) }));
+    const svg = d3.select(el).selectAll('svg').data([0]).join('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const yMax = d3.max(data, (d) => d.v) || 1;
+    const y0 = d3.scaleLinear([0, yMax], [H - 28, 12]).nice(4);
+    const ticks = y0.ticks(4);
+    const ml = Math.ceil(textWidth(svg, ticks.map((t) => fmt(m, t)))) + 10, mr = 8, mb = 28, mt = 12;
+    const x = d3.scaleBand(data.map((d) => d.key), [ml, W - mr]).padding(0.28);
+    const y = d3.scaleLinear(y0.domain(), [H - mb, mt]);
+    const first = MOTION && !firstDone.has('timeline');
+    firstDone.add('timeline');
+    const dur = D(700);
+
+    const gGrid = svg.selectAll('g.grid').data([0]).join('g').attr('class', 'grid');
+    gGrid.selectAll('line').data(ticks, (t) => t).join('line')
+      .attr('x1', ml).attr('x2', W - mr).attr('y1', (t) => y(t)).attr('y2', (t) => y(t))
+      .style('stroke', (t) => (t === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)')).attr('stroke-width', 1);
+    gGrid.selectAll('text').data(ticks, (t) => t).join('text')
+      .attr('x', ml - 8).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end').text((t) => fmt(m, t));
+
+    // x labels: every nth
+    const lw = textWidth(svg, ['Sep 30']) + 10;
+    const every = Math.max(1, Math.ceil(lw / Math.max(1, x.step())));
+    const gx = svg.selectAll('g.xa').data([0]).join('g').attr('class', 'xa');
+    gx.selectAll('text').data(data.filter((d, i) => i % every === 0), (d) => d.key).join('text')
+      .attr('x', (d) => x(d.key) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle').text((d) => fDay(d.day));
+
+    // bars
+    const gB = svg.selectAll('g.bars').data([0]).join('g').attr('class', 'bars');
+    gB.selectAll('rect').data(data, (d) => d.key).join(
+      (en) => en.append('rect').attr('rx', 3).attr('x', (d) => x(d.key)).attr('width', x.bandwidth()).attr('y', y(0)).attr('height', 0).style('fill', color(0)),
+    ).transition().duration(first ? D(800) : dur).delay((d, i) => (first ? D(i * 30) : 0)).ease(d3.easeCubicOut)
+      .attr('x', (d) => x(d.key)).attr('width', x.bandwidth())
+      .attr('y', (d) => (isCount && d.v ? y(d.v) : y(0)))
+      .attr('height', (d) => (isCount && d.v ? y(0) - y(d.v) : 0))
+      .attr('fill-opacity', isCount ? 1 : 0);
+
+    // line (rates)
+    const def = (d) => d.v !== null;
+    const line = d3.line().defined(def).x((d) => x(d.key) + x.bandwidth() / 2).y((d) => y(d.v));
+    const gL = svg.selectAll('g.line').data([0]).join('g').attr('class', 'line');
+    const path = gL.selectAll('path').data([data]).join('path').style('fill', 'none').style('stroke', color(0))
+      .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    gL.selectAll('circle').data(isCount ? [] : data.filter(def), (d) => d.key).join(
+      (en) => en.append('circle').attr('r', 0).style('fill', color(0)).attr('cx', (d) => x(d.key) + x.bandwidth() / 2).attr('cy', (d) => y(d.v)),
+      (up) => up, (ex) => ex.transition().duration(D(200)).attr('r', 0).remove(),
+    ).transition().duration(dur).delay((d, i) => D(200 + i * 25))
+      .attr('cx', (d) => x(d.key) + x.bandwidth() / 2).attr('cy', (d) => y(d.v)).attr('r', 3);
+    if (isCount) { path.attr('d', null).attr('stroke-dasharray', null); }
+    else {
+      const wasEmpty = !path.attr('d') || path.attr('data-m') !== m;
+      path.attr('d', line(data)).attr('data-m', m);
+      if (MOTION && wasEmpty) {
+        const L = path.node().getTotalLength();
+        path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L)
+          .transition().duration(1100).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0).on('end', () => path.attr('stroke-dasharray', null));
+      }
+    }
+
+    // average
+    const vals = data.map((d) => d.v).filter((v) => v !== null);
+    const avg = vals.length ? d3.mean(vals) : null;
+    const gA = svg.selectAll('g.avg').data([0]).join('g').attr('class', 'avg');
+    gA.selectAll('line').data(avg === null ? [] : [avg]).join('line').style('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 4').attr('stroke-width', 1)
+      .attr('x1', ml).attr('x2', W - mr).transition().duration(dur).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
+    gA.selectAll('text').data(avg === null ? [] : [avg]).join('text').attr('text-anchor', 'end').attr('x', W - mr).style('fill', 'var(--color-fg-muted)')
+      .text((d) => 'avg ' + fmt(m, d)).transition().duration(dur).attr('y', (d) => y(d) - 5);
+
+    // hover
+    const tip = getTip(el);
+    svg.selectAll('g.hover').data([0]).join('g').attr('class', 'hover').selectAll('rect').data(data, (d) => d.key).join('rect')
+      .attr('x', (d) => x(d.key) - (x.step() - x.bandwidth()) / 2).attr('width', x.step()).attr('y', mt).attr('height', H - mb - mt).style('fill', 'transparent')
+      .on('mousemove', (event, d) => {
+        gB.selectAll('rect').attr('opacity', (b) => (b.key === d.key ? 1 : 0.45));
+        tipLines(tip, fDayY(d.day), metricLines(d.r, ['clicks', 'impressions', 'ctr', 'cpc', 'conversions', 'avg_time_on_site_sec']));
+        placeTip(tip, el, event);
+      })
+      .on('mouseleave', () => { gB.selectAll('rect').attr('opacity', 1); tip.classList.remove('on'); });
+  }
+
+  // ---------- horizontal bars ----------
+  function drawBars(el, rows, opt) {
+    const m = opt.metric || metric;
+    let data = rows.map((r) => ({ r, k: String(r[opt.key]), v: num(r[m]) }));
+    if (opt.order !== 'given') data.sort((a, b) => (b.v ?? -Infinity) - (a.v ?? -Infinity));
+    if (opt.limit) data = data.slice(0, opt.limit);
+    const max = d3.max(data, (d) => d.v) || 1;
+    const rowH = opt.sub ? 40 : 32;
+    el.style.height = data.length * rowH + 'px';
+    el.style.minHeight = '0';
+    const first = MOTION && !el.dataset.drawn;
+    el.dataset.drawn = '1';
+    const tip = getTip(el);
+    const s = d3.select(el).selectAll('.bx-row').data(data, (d) => d.k);
+    s.exit().transition().duration(D(250)).style('opacity', 0).remove();
+    const en = s.enter().append('div').attr('class', 'bx-row').style('height', rowH + 'px')
+      .style('transform', (d, i) => `translateY(${i * rowH}px)`).style('opacity', first ? 0 : 1);
+    const lab = en.append('div').attr('class', 'bx-label');
+    lab.append('span').attr('class', 'bx-name');
+    lab.append('span').attr('class', 'bx-sub');
+    en.append('div').attr('class', 'bx-track').append('div').attr('class', 'bx-bar').style('width', '0%');
+    en.append('div').attr('class', 'bx-val');
+    const all = en.merge(s);
+    all.select('.bx-name').text((d) => opt.label(d.r));
+    if (opt.icon) all.select('.bx-name').each(function (d) { const el = opt.icon(d.r); el.style.marginRight = '6px'; el.style.verticalAlign = '-4px'; this.prepend(el); });
+    all.select('.bx-sub').text((d) => (opt.sub ? opt.sub(d.r) : '')).style('display', opt.sub ? null : 'none');
+    all.select('.bx-val').text((d) => fmt(m, d.v));
+    all.select('.bx-bar').style('background', (d) => (opt.colorOf ? opt.colorOf(d.r) : null) || opt.color || color(0));
+    all.transition('pos').duration(D(650)).delay((d, i) => (first ? D(i * 50) : 0)).ease(d3.easeCubicInOut)
+      .style('transform', (d, i) => `translateY(${i * rowH}px)`).style('opacity', 1);
+    all.select('.bx-bar').transition('w').duration(D(first ? 950 : 650)).delay((d, i) => (first ? D(150 + i * 50) : 0)).ease(d3.easeCubicOut)
+      .style('width', (d) => (d.v === null || !d.v ? '0%' : Math.max(0.8, (d.v / max) * 100) + '%'));
+    all.on('mousemove', (event, d) => {
+      tipLines(tip, opt.title ? opt.title(d.r) : opt.label(d.r), metricLines(d.r, opt.tipKeys));
+      placeTip(tip, el, event);
+    }).on('mouseleave', () => tip.classList.remove('on'));
+  }
+
+  function drawTrackers() {
+    const el = document.getElementById('tracker-bars');
+    document.getElementById('lg-click').style.background = color(0);
+    document.getElementById('lg-imp').style.background = color(1);
+    if (!prep(el, ['trackers'])) return;
+    const rows = rowsFor('trackers').map((r) => ({ r, k: r.tracker, c: num(r.click_conversions) || 0, i: num(r.impression_conversions) || 0, t: num(r.conversions) || 0 }))
+      .sort((a, b) => b.t - a.t);
+    const max = d3.max(rows, (d) => d.t) || 1;
+    const rowH = 36;
+    el.style.height = rows.length * rowH + 'px'; el.style.minHeight = '0';
+    const first = MOTION && !el.dataset.drawn; el.dataset.drawn = '1';
+    const tip = getTip(el);
+    const s = d3.select(el).selectAll('.bx-row').data(rows, (d) => d.k);
+    s.exit().remove();
+    const en = s.enter().append('div').attr('class', 'bx-row').style('height', rowH + 'px').style('transform', (d, i) => `translateY(${i * rowH}px)`);
+    en.append('div').attr('class', 'bx-label').append('span').attr('class', 'bx-name');
+    const tr = en.append('div').attr('class', 'bx-track').style('display', 'flex').style('gap', '2px');
+    tr.append('div').attr('class', 'bx-bar c').style('width', '0%');
+    tr.append('div').attr('class', 'bx-bar i').style('width', '0%');
+    en.append('div').attr('class', 'bx-val');
+    const all = en.merge(s);
+    all.select('.bx-name').text((d) => d.k);
+    all.select('.bx-val').text((d) => fInt(d.t));
+    all.transition('pos').duration(D(600)).style('transform', (d, i) => `translateY(${i * rowH}px)`);
+    all.select('.bx-bar.c').style('background', color(0)).transition().duration(D(first ? 900 : 600)).delay((d, i) => (first ? D(150 + i * 80) : 0)).ease(d3.easeCubicOut)
+      .style('width', (d) => (d.c / max) * 100 + '%');
+    all.select('.bx-bar.i').style('background', color(1)).transition().duration(D(first ? 900 : 600)).delay((d, i) => (first ? D(450 + i * 80) : 0)).ease(d3.easeCubicOut)
+      .style('width', (d) => (d.i / max) * 100 + '%');
+    all.on('mousemove', (event, d) => {
+      tipLines(tip, d.k, [['Conversions', fInt(d.t), true], ['After a click', fInt(d.c)], ['After an impression', fInt(d.i)]]);
+      placeTip(tip, el, event);
+    }).on('mouseleave', () => tip.classList.remove('on'));
+  }
+
+  function drawBreakdowns() {
+    document.querySelectorAll('.sn-mtitle').forEach((h) => { h.textContent = METRICS[metric].label + ' ' + h.dataset.base; });
+    const dev = document.getElementById('device-bars');
+    if (prep(dev, ['devices'])) drawBars(dev, rowsFor('devices'), { key: 'device', label: (r) => r.device });
+    const age = document.getElementById('age-bars'), gen = document.getElementById('gender-bars');
+    if (prep(age, ['demographics']) && prep(gen, ['demographics'])) {
+      const rows = rowsFor('demographics').slice().sort((a, b) => String(a.segment_name).localeCompare(String(b.segment_name)));
+      drawBars(age, rows.filter((r) => r.segment_type === 'Age'), { key: 'segment', label: (r) => r.segment_name, order: 'given', color: color(0) });
+      drawBars(gen, rows.filter((r) => r.segment_type === 'Gender'), { key: 'segment', label: (r) => r.segment_name, color: color(2), colorOf: (r) => ({ Male: '#2892b9', Female: '#2e9e83' })[r.segment_name] });
+    }
+    const aud = document.getElementById('audience-bars');
+    if (prep(aud, ['audiences'])) drawBars(aud, rowsFor('audiences'), { key: 'segment', label: (r) => r.segment_name, sub: (r) => r.provider + ' · ' + r.audience_type, title: (r) => r.segment });
+    const dom = document.getElementById('domain-bars');
+    if (prep(dom, ['domains'])) drawBars(dom, rowsFor('domains').filter((r) => num(r[metric]) !== null), { key: 'domain', label: (r) => r.site_or_app, icon: iconFor, limit: 12, title: (r) => r.site_or_app + (r.inventory === 'App' ? ' (app)' : '') });
+  }
+
+  // ---------- tables ----------
+  const tableState = {};
+  function drawTable(id, rows, cols, keyField, opt = {}) {
+    const table = document.getElementById(id);
+    const st = tableState[id] || (tableState[id] = { sort: opt.sort || cols[1].f, dir: -1, q: '' });
+    const ths = table.querySelectorAll('thead th');
+    ths.forEach((th) => {
+      const f = th.dataset.field;
+      if (!th.dataset.bound) {
+        th.dataset.bound = '1';
+        th.querySelector('button').addEventListener('click', () => {
+          if (st.sort === f) st.dir = -st.dir; else { st.sort = f; st.dir = cols.find((c) => c.f === f)?.text ? 1 : -1; }
+          render();
+        });
+      }
+      if (f === st.sort) th.setAttribute('aria-sort', st.dir > 0 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort');
+    });
+    const col = cols.find((c) => c.f === st.sort) || cols[0];
+    let data = rows.slice();
+    if (st.q) { const q = st.q.toLowerCase(); data = data.filter((r) => cols.some((c) => c.text && String(r[c.f] ?? '').toLowerCase().includes(q)) || String(r[keyField]).toLowerCase().includes(q)); }
+    data.sort((a, b) => {
+      if (col.text) return st.dir * String(a[col.f] ?? '').localeCompare(String(b[col.f] ?? ''));
+      const av = num(a[col.f]), bv = num(b[col.f]);
+      if (av === null && bv === null) return 0; if (av === null) return 1; if (bv === null) return -1;
+      return st.dir * (av - bv);
+    });
+    const tbody = table.querySelector('tbody');
+    const keyOf = opt.key || ((r) => String(r[keyField]));
+    d3.select(tbody).selectAll('tr').data(data, keyOf).join('tr')
+      .attr('data-key', keyOf)
+      .attr('data-zip', (r) => (opt.zip ? String(r.zip_code) : null))
+      .classed('is-picked', (r) => opt.picked && opt.picked(r))
+      .each(function (r) {
+        const tds = d3.select(this).selectAll('td').data(cols).join('td');
+        tds.attr('class', (c) => (c.narrow ? 'sn-hide-narrow' : null)).each(function (c) {
+          const text = c.fmt ? c.fmt(r[c.f]) : (r[c.f] ?? '—');
+          if (!c.icon) { this.textContent = text; return; }
+          const wrap = document.createElement('span'); wrap.className = 'sn-site';
+          const lbl = document.createElement('span'); lbl.textContent = text;
+          wrap.append(c.icon(r), lbl);
+          this.replaceChildren(wrap);
+        });
+      })
+      .order();
+  }
+  const C = (f, extra = {}) => ({ f, fmt: (v) => fmt(f, num(v)), ...extra });
+
+  function drawCampaigns() {
+    const s = status('campaigns');
+    const rows = rowsOf('campaigns');
+    if (s === 'ok' && rows[0] && rows[0].campaign_group) document.getElementById('group-title').textContent = rows[0].campaign_group;
+    // select
+    if (document.activeElement !== sel) {
+      const cur = dash.params().campaign ?? '';
+      sel.replaceChildren(new Option('All campaigns', ''), ...rows.map((r) => new Option(r.campaign_name, r.campaign_id)));
+      sel.value = cur;
+    }
+    if (s !== 'ok') return;
+    const picked = dash.params().campaign;
+    drawTable('campaign-table', rows, [
+      { f: 'campaign_name', text: true }, C('impressions'), C('clicks'), C('ctr'), C('cpc'), C('conversions'),
+      ...(isVideo() ? [C('video_completed'), C('vcr')] : []),
+      C('avg_time_on_site_sec', { narrow: true }), { f: 'spend', fmt: (v) => (num(v) === null ? '—' : fMoney(num(v))), narrow: true },
+    ], 'campaign_id', { sort: 'clicks', picked: (r) => r.campaign_id === picked });
+  }
+  document.getElementById('campaign-table').addEventListener('click', (e) => {
+    const tr = e.target.closest('tbody tr[data-key]'); if (!tr) return;
+    const cur = dash.params().campaign;
+    dash.setParams({ campaign: cur === tr.dataset.key ? null : tr.dataset.key });
+  });
+
+  // ---------- site icons: a saved favicon where there is one, else a lettered badge ----------
+  // icons-*.js page files fill window.SN_ICONS with [domain, data-URL icon or null]
+  let iconRef = -1, iconMap = new Map();
+  function siteIcons() {
+    const list = window.SN_ICONS || [];
+    if (list.length !== iconRef) { iconRef = list.length; iconMap = new Map(list.filter((x) => x && x[1]).map((x) => [String(x[0]).toLowerCase(), String(x[1])])); }
+    return iconMap;
+  }
+  // Streaming / app placements show their brand's icon: [pattern on the app title (or placement id), brand website]
+  const APP_BRANDS = [
+    [/samsung tv plus|samsungtvplus|g15147002586/i, 'samsungtvplus.com'],
+    [/roku channel|rokuchannel/i, 'therokuchannel.roku.com'],
+    [/\blg channels\b/i, 'lgchannels.com'],
+    [/peacock/i, 'peacocktv.com'],
+    [/\bhulu\b/i, 'hulu.com'],
+    [/pluto/i, 'pluto.tv'],
+    [/tubi/i, 'tubitv.com'],
+    [/xumo/i, 'xumo.com'],
+    [/sling tv|^sling:|sling for airtv|com\.sling|dishnetwork\.sling/i, 'sling.com'],
+    [/directv/i, 'directv.com'],
+    [/philo/i, 'philo.com'],
+    [/fubo/i, 'fubo.tv'],
+    [/frndly/i, 'frndlytv.com'],
+    [/disney.?plus|disney\+/i, 'disneyplus.com'],
+    [/discovery\+|discovery plus/i, 'discoveryplus.com'],
+    [/\bplex\b/i, 'plex.tv'],
+    [/spectrum/i, 'spectrum.net'],
+    [/xfinity/i, 'xfinity.com'],
+    [/dish anywhere|\bdish\b/i, 'dish.com'],
+    [/\bamc\+|amc plus/i, 'amcplus.com'],
+    [/\bthe cw\b|cwtv/i, 'cwtv.com'],
+    [/\bhistory\b/i, 'history.com'],
+    [/lifetime/i, 'mylifetime.com'],
+    [/\bbravo\b/i, 'bravotv.com'],
+    [/court tv/i, 'courttv.com'],
+    [/univision/i, 'univision.com'],
+    [/local now/i, 'localnow.com'],
+    [/newson/i, 'newson.us'],
+    [/haystack/i, 'haystack.tv'],
+    [/very local/i, 'verylocal.com'],
+    [/loop tv/i, 'loop.tv'],
+    [/watchfree/i, 'vizio.com'],
+    [/atmosphere/i, 'atmosphere.tv'],
+    [/tvbanywhere/i, 'tvbanywhere.com'],
+    [/happykids/i, 'happykids.tv'],
+    [/paramount/i, 'paramountplus.com'],
+    [/\bhbo\b|^max$|^max:|wbd\.max/i, 'max.com'],
+    [/vizio/i, 'vizio.com'],
+    [/\bplex\b/i, 'plex.tv'],
+    [/\bespn\b/i, 'espn.com'],
+    [/telemundo/i, 'telemundo.com'],
+    [/scripps news/i, 'scrippsnews.com'],
+    [/\bvix\b/i, 'vix.com'],
+    [/fanduel sports/i, 'fanduelsportsnetwork.com'],
+    [/hgtv/i, 'hgtv.com'],
+    [/fox sports|fox now|foxsports/i, 'foxsports.com'],
+    [/\bmlb\b/i, 'mlb.com'],
+    [/fox ?news|onefox/i, 'foxnews.com'],
+    [/cbs sports/i, 'cbssports.com'],
+    [/cbs news/i, 'cbsnews.com'],
+    [/\bnbc\b|nbcu/i, 'nbc.com'],
+    [/\bcnbc\b/i, 'cnbc.com'],
+    [/\bcnn\b/i, 'cnn.com'],
+    [/bloomberg/i, 'bloomberg.com'],
+    [/new york post|nypost/i, 'nypost.com'],
+    [/smartnews/i, 'smartnews.com'],
+    [/newsbreak/i, 'newsbreak.com'],
+    [/weather channel/i, 'weather.com'],
+    [/daily mail/i, 'dailymail.co.uk'],
+    [/\btmz\b/i, 'tmz.com'],
+    [/thescore/i, 'thescore.com'],
+    [/bleacher report/i, 'bleacherreport.com'],
+    [/barstool/i, 'barstoolsports.com'],
+    [/huffpost/i, 'huffpost.com'],
+    [/letterboxd/i, 'letterboxd.com'],
+    [/words with friends/i, 'zynga.com'],
+    [/wattpad/i, 'wattpad.com'],
+    [/nextplus/i, 'nextplus.me'],
+    [/radio javan/i, 'radiojavan.com'],
+    [/wink news/i, 'winknews.com'],
+    [/\bwala\b|fox10/i, 'fox10tv.com'],
+    [/fox5 vegas/i, 'fox5vegas.com'],
+    [/wbrc/i, 'wbrc.com'],
+    [/wluc|tv6 & fox/i, 'uppermichiganssource.com'],
+    [/fox 17 west michigan/i, 'fox17online.com'],
+    [/wktv/i, 'wktv.com'],
+    [/fox carolina/i, 'foxcarolina.com'],
+    [/wnep|newswatch16/i, 'wnep.com'],
+    [/wgrz|2 on your side/i, 'wgrz.com'],
+    [/wcax/i, 'wcax.com'],
+    [/wftx|fox 4 news fort myers/i, 'fox4now.com'],
+    [/wwny|7news/i, 'wwnytv.com'],
+    [/wabi/i, 'wabi.tv'],
+    [/fox local/i, 'fox.com'],
+    [/stocktwits/i, 'stocktwits.com'],
+  ];
+  function iconFor(r) {
+    const dom = String(r.domain || '').toLowerCase();
+    const isApp = r.inventory === 'App' || dom.startsWith('bundle/');
+    const el = document.createElement('span'); el.className = 'sn-ico' + (isApp ? ' is-app' : ''); el.setAttribute('aria-hidden', 'true');
+    let src = null;
+    if (!isApp) { const m = siteIcons(); const parts = dom.replace(/^www\./, '').split('.'); for (let i = 0; i < parts.length - 1 && !src; i++) src = m.get(parts.slice(i).join('.')) || null; }
+    else {
+      src = siteIcons().get(dom) || null;
+      if (!src) {
+        const t = String(r.site_or_app || '');
+        const text = t && t.toLowerCase() !== dom && t.toLowerCase() !== 'unknown' ? t : dom;
+        const hit = APP_BRANDS.find(([rx]) => rx.test(text));
+        if (hit) src = siteIcons().get(hit[1]) || null;
+      }
+    }
+    if (src && src.startsWith('data:image/')) { const img = document.createElement('img'); img.alt = ''; img.src = src; el.classList.add('is-img'); el.append(img); return el; }
+    const name = String(r.site_or_app || dom).replace(/^bundle\//, '').replace(/^(www|m)\./i, '');
+    el.textContent = ((name.match(/[A-Za-z0-9]/) || ['?'])[0]).toUpperCase();
+    let h = 0; for (const ch of dom) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    el.style.background = dash.colors[h % dash.colors.length];
+    return el;
+  }
+
+  function drawDomainTable() {
+    if (status('domains') !== 'ok') return;
+    drawTable('domain-table', rowsFor('domains'), [
+      { f: 'site_or_app', text: true, icon: iconFor }, { f: 'inventory', text: true, narrow: true }, C('impressions'), C('clicks'), C('ctr'), C('cpc', { narrow: true }), C('conversions'), ...(isVideo() ? [C('video_completed'), C('vcr')] : []), C('avg_time_on_site_sec', { narrow: true }),
+    ], 'domain', { sort: 'impressions', key: (r) => rowKey(r.campaign, r.domain) });
+  }
+  document.getElementById('domain-search').addEventListener('input', (e) => { (tableState['domain-table'] ||= { sort: 'impressions', dir: -1 }).q = e.target.value.trim(); drawDomainTable(); });
+
+  function drawZipTable() {
+    if (status('geo') !== 'ok') return;
+    drawTable('zip-table', rowsFor('geo'), [
+      { f: 'zip_code', text: true }, { f: 'city', text: true }, C('clicks'), C('impressions'), C('ctr'), ...(isVideo() ? [C('video_completed')] : []), C('conversions', { narrow: true }),
+    ], 'zip_code', { sort: MK, key: (r) => rowKey(r.campaign, r.zip_code), zip: true });
+  }
+  document.getElementById('zip-search').addEventListener('input', (e) => { (tableState['zip-table'] ||= { sort: 'clicks', dir: -1 }).q = e.target.value.trim(); drawZipTable(); });
+
+  // ---------- takeaway ----------
+  function drawTakeaway() {
+    const el = document.getElementById('takeaway');
+    const h = dash.data('highlights');
+    const r = h.status === 'ok' ? (h.data || []).find((x) => String(x.campaign) === cur()) : null;
+    const picked = dash.params().campaign;
+    el.replaceChildren();
+    if (!r || !r.top_campaign) return;
+    const span = (field, text, bold) => { const s = document.createElement(bold ? 'b' : 'span'); s.dataset.source = 'highlights'; s.dataset.field = field; s.dataset.where = whereCur(); s.textContent = text; return s; };
+    const pct = d3.format('.0%');
+    const t = (s) => document.createTextNode(s);
+    if (r.basis === 'video_completed') {
+      const who = picked ? 'Showing ' + ((rowsOf('campaigns').find((c) => c.campaign_id === picked) || {}).campaign_name || 'this campaign') + ' only: ' : '';
+      if (!picked) el.append(span('top_campaign', r.top_campaign, true), t(' delivered '), span('top_campaign_click_share', pct(num(r.top_campaign_click_share)), true),
+        t(' of the group’s completed video views at a '), span('top_campaign_vcr', d3.format('.1%')(num(r.top_campaign_vcr)), true), t(' completion rate'));
+      else el.append(t(who.trim()));
+      if (r.top_device) el.append(t(picked ? ' ' : ', and '), span('top_device_click_share', pct(num(r.top_device_click_share)), true), t(picked ? ' of its completed views were on ' : ' of completed views were on '), span('top_device', String(r.top_device), true), t(' devices.'));
+      else el.append(t('.'));
+    } else if (!picked) {
+      el.append(span('top_campaign', r.top_campaign, true), t(' drove '), span('top_campaign_click_share', pct(num(r.top_campaign_click_share)), true),
+        t(' of the group’s clicks at a '), span('top_campaign_cpc', fMoney(num(r.top_campaign_cpc)), true), t(' cost per click'));
+      if (r.top_device) el.append(t(', and '), span('top_device_click_share', pct(num(r.top_device_click_share)), true), t(' of all clicks came from '), span('top_device', String(r.top_device), true), t(' devices.'));
+      else el.append(t('.'));
+    } else if (r.top_device) {
+      const name = (rowsOf('campaigns').find((c) => c.campaign_id === picked) || {}).campaign_name || 'this campaign';
+      el.append(t('Showing ' + name + ' only: '), span('top_device_click_share', pct(num(r.top_device_click_share)), true), t(' of its clicks came from '), span('top_device', String(r.top_device), true), t(' devices.'));
+    }
+  }
+
+  // ---------- map ----------
+  const map = { built: false };
+  // What the map measures: clicks, or completed views for video/CTV with no clicks
+  let MK = 'clicks';
+  const NOUN = { clicks: ['click', 'clicks'], video_completed: ['completed view', 'completed views'] };
+  function mapKey() {
+    const r = rowsFor('totals')[0];
+    return r && !((num(r.clicks) || 0) > 0) && (num(r.video_completed) || 0) > 0 ? 'video_completed' : 'clicks';
+  }
+  // The page's d3 has no geo module, so the map uses its own Web Mercator projection.
+  const merc = ([lon, lat]) => {
+    const la = Math.max(-85, Math.min(85, lat)) * Math.PI / 180;
+    return [lon * Math.PI / 180, Math.log(Math.tan(Math.PI / 4 + la / 2))];
+  };
+  function makeProjection(coords, W, H, pad) {
+    const pts = coords.map(merc);
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const s = Math.min((W - 2 * pad) / Math.max(x1 - x0, 1e-4), (H - 2 * pad) / Math.max(y1 - y0, 1e-4));
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    return ([lon, lat]) => { const [x, y] = merc([lon, lat]); return [W / 2 + (x - cx) * s, H / 2 - (y - cy) * s]; };
+  }
+  const ringsOf = (g) => (!g ? [] : g.type === 'Polygon' ? g.coordinates : g.type === 'MultiPolygon' ? g.coordinates.flat() : []);
+  function makePath(proj) {
+    const geomOf = (f) => (f && f.geometry ? f.geometry : f);
+    const path = (f) => ringsOf(geomOf(f)).map((ring) => 'M' + ring.map((p) => { const q = proj(p); return q[0].toFixed(2) + ',' + q[1].toFixed(2); }).join('L') + 'Z').join('');
+    path.bounds = (f) => {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const ring of ringsOf(geomOf(f))) for (const p of ring) { const [x, y] = proj(p); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      return [[x0, y0], [x1, y1]];
+    };
+    return path;
+  }
+
+  function polysOnly(g) {
+    if (!g) return null;
+    if (g.type === 'Polygon' || g.type === 'MultiPolygon') return g;
+    if (g.type === 'GeometryCollection') {
+      const polys = [];
+      for (const p of g.geometries || []) {
+        if (p.type === 'Polygon') polys.push(p.coordinates);
+        else if (p.type === 'MultiPolygon') polys.push(...p.coordinates);
+        else if (p.type === 'GeometryCollection') { const q = polysOnly(p); if (q) polys.push(...(q.type === 'Polygon' ? [q.coordinates] : q.coordinates)); }
+      }
+      return polys.length ? { type: 'MultiPolygon', coordinates: polys } : null;
+    }
+    return null;
+  }
+  const parseGeom = (s) => { try { const g = polysOnly(typeof s === 'string' ? JSON.parse(s) : s); return g; } catch (e) { return null; } };
+
+  function buildMap(box, H) {
+    const W = 1000;
+    const placed = rowsOf('geo').filter((r) => String(r.campaign) === 'all' && num(r.lat) !== null).map((r) => [num(r.lon), num(r.lat)]);
+    const proj = makeProjection(placed.length ? placed : [[-74, 40.7]], W, H, 30);
+    const path = makePath(proj);
+    box.replaceChildren();
+    const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Map of ' + NOUN[MK][1] + ' by ZIP code');
+    const root = svg.append('g');
+    const defs = svg.insert('defs', 'g');
+    defs.append('clipPath').attr('id', 'sn-land-clip');
+    // The world map shows everywhere except where the detailed local coastline is drawn
+    const wm = defs.append('mask').attr('id', 'sn-world-mask').attr('maskUnits', 'userSpaceOnUse').attr('maskContentUnits', 'userSpaceOnUse')
+      .attr('x', -1e7).attr('y', -1e7).attr('width', 2e7).attr('height', 2e7);
+    wm.append('rect').attr('x', -1e7).attr('y', -1e7).attr('width', 2e7).attr('height', 2e7).attr('fill', '#fff');
+    wm.append('g').attr('class', 'holes');
+    root.append('g').attr('class', 'world-land').attr('mask', 'url(#sn-world-mask)');
+    root.append('g').attr('class', 'states').attr('mask', 'url(#sn-world-mask)');
+    root.append('g').attr('class', 'land');
+    root.append('g').attr('class', 'counties').attr('clip-path', 'url(#sn-land-clip)');
+    root.append('g').attr('class', 'zips');
+    root.append('g').attr('class', 'dots');
+    root.append('g').attr('class', 'pulses');
+    root.append('g').attr('class', 'bubbles');
+    root.append('g').attr('class', 'labels');
+    const tools = document.createElement('div'); tools.className = 'sn-map-tools';
+    const mk = (txt, label, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.setAttribute('aria-label', label); b.addEventListener('click', fn); tools.append(b); };
+    const hint = document.createElement('div'); hint.className = 'sn-map-hint'; hint.textContent = 'Drag to pan · ⌘/Ctrl + scroll or +/− to zoom';
+    const note = document.createElement('div'); note.className = 'sn-map-note';
+    box.append(tools, hint, note);
+    const wa = proj([-179.9, 83]), wb = proj([179.9, -58]);
+    const kMin = Math.min(1, 0.98 * Math.min(W / (wb[0] - wa[0]), H / (wb[1] - wa[1])));
+    const zoom = d3.zoom().scaleExtent([kMin, 400]).translateExtent([[wa[0] - W * 0.1, wa[1] - H * 0.1], [wb[0] + W * 0.1, wb[1] + H * 0.1]]).filter((e) => (e.type === 'wheel' ? e.ctrlKey || e.metaKey : !e.button))
+      .on('zoom', (e) => {
+        root.attr('transform', e.transform);
+        map.k = e.transform.k;
+        root.selectAll('circle.bub').attr('r', (d) => map.r(d.c) / map.k);
+        root.selectAll('circle.pulse').attr('r', (d) => map.r(d.c) / map.k);
+        root.selectAll('circle.dot').attr('r', 2.2 / map.k);
+        root.selectAll('text.lbl').attr('font-size', (d) => d.fs / map.k).attr('stroke-width', 3 / map.k).attr('dy', (d) => (d.dy || 0) / map.k);
+      });
+    svg.call(zoom).on('dblclick.zoom', null);
+    mk('+', 'Zoom in', () => svg.transition().duration(D(350)).call(zoom.scaleBy, 1.8));
+    mk('−', 'Zoom out', () => svg.transition().duration(D(350)).call(zoom.scaleBy, 1 / 1.8));
+    mk('⟲', 'Reset view', () => flyToView(map.view || 'clicks'));
+    Object.assign(map, { built: true, W, H, svg, root, zoom, proj, path, zipFeat: new Map(), k: 1, zsRef: null, note, csRef: null, bmRef: null, wRef: null, kMin, view: null, r: d3.scaleSqrt([0, 1], [0, 14]) });
+  }
+
+  function addBasemap() {
+    if (status('basemap') !== 'ok' || map.bmRef === dash.data('basemap').data) return;
+    map.bmRef = dash.data('basemap').data;
+    const land = rowsOf('basemap').map((r) => ({ type: 'Feature', id: r.region, geometry: parseGeom(r.geometry) })).filter((f) => f.geometry);
+    map.root.select('g.land').selectAll('path.land').data(land, (d) => d.id).join('path').attr('class', 'land').attr('d', map.path)
+      .style('opacity', 0).transition().duration(D(700)).style('opacity', 1);
+    map.svg.select('#sn-land-clip').selectAll('path').data(land, (d) => d.id).join('path').attr('d', map.path);
+    map.svg.select('#sn-world-mask g.holes').selectAll('rect').data(land, (d) => d.id).join('rect').attr('fill', '#000')
+      .each(function (d) { const [[x0, y0], [x1, y1]] = map.path.bounds(d); d3.select(this).attr('x', x0).attr('y', y0).attr('width', x1 - x0).attr('height', y1 - y0); });
+  }
+  function addWorld() {
+    // world-*.js page files fill window.SN_WORLD with [kind, id, geometry]
+    const list = window.SN_WORLD || [];
+    if (!list.length || map.wRef === list.length) return;
+    map.wRef = list.length;
+    const feats = list.map((r) => ({ type: 'Feature', id: r[1], kind: r[0], geometry: parseGeom(r[2]) })).filter((f) => f.geometry);
+    map.root.select('g.world-land').selectAll('path.world').data(feats.filter((f) => f.kind === 'country'), (d) => d.id).join('path').attr('class', 'world').attr('d', map.path);
+    map.root.select('g.states').selectAll('path.state').data(feats.filter((f) => f.kind === 'state'), (d) => d.id).join('path').attr('class', 'state').attr('d', map.path);
+  }
+  function drawLabels(rows) {
+    // Town names for the places with the most clicks, kept the same size on screen at any zoom
+    const by = d3.rollup(rows.filter((r) => num(r.lat) !== null && num(r[MK]) > 0), (v) => ({
+      clicks: d3.sum(v, (r) => num(r[MK])),
+      lon: d3.mean(v, (r) => num(r.lon)), lat: d3.mean(v, (r) => num(r.lat)),
+    }), (r) => r.city + (r.region ? ', ' + r.region : ''));
+    const towns = [...by].map(([name, t]) => ({ name: name.split(',')[0], key: name, clicks: t.clicks, p: map.proj([t.lon, t.lat]) }))
+      .sort((a, b) => b.clicks - a.clicks).slice(0, 14)
+      .map((t, i) => ({ ...t, fs: i < 4 ? 13 : 11, dy: -(map.r(t.clicks) + 6) }));
+    const k = map.k || 1;
+    map.root.select('g.labels').selectAll('text.lbl').data(towns, (d) => d.key).join('text')
+      .attr('class', (d, i) => 'lbl' + (i < 4 ? '' : ' sub')).attr('text-anchor', 'middle')
+      .attr('x', (d) => d.p[0]).attr('y', (d) => d.p[1])
+      .attr('font-size', (d) => d.fs / k).attr('stroke-width', 3 / k).attr('dy', (d) => (d.dy || 0) / k)
+      .text((d) => d.name);
+  }
+  function addCounties() {
+    if (status('counties') !== 'ok' || map.csRef === dash.data('counties').data) return;
+    map.csRef = dash.data('counties').data;
+    const counties = rowsOf('counties').map((r) => ({ type: 'Feature', id: r.geo_id, properties: { name: r.county_name }, geometry: parseGeom(r.geometry) })).filter((f) => f.geometry);
+    map.root.select('g.counties').selectAll('path.county').data(counties, (d) => d.id).join('path').attr('class', 'county').attr('d', map.path)
+      .style('opacity', 0).transition().duration(D(600)).style('opacity', 1);
+  }
+  function addZipShapes() {
+    const st = status('zip_shapes'), sc = status('counties');
+    const sb = status('basemap');
+    map.note.textContent = st === 'ok' && sc === 'ok' && sb === 'ok' ? '' : isBad(st) || isBad(sc) || isBad(sb) ? 'Some map layers didn’t load; circles still show ' + NOUN[MK][1] : 'Loading the map…';
+    const zo = document.getElementById('zip-outlines');
+    zo.textContent = st === 'ok' ? 'Outlined: ' + fInt(rowsOf('zip_shapes').length) + ' ZIP codes with ' + NOUN[MK][1] : isBad(st) ? 'ZIP outlines failed to load' : 'Outlines loading…';
+    if (st !== 'ok' || map.zsRef === dash.data('zip_shapes').data) return;
+    map.zsRef = dash.data('zip_shapes').data;
+    const zips = rowsOf('zip_shapes').map((r) => ({ type: 'Feature', id: String(r.zip_code), geometry: parseGeom(r.geometry) })).filter((f) => f.geometry);
+    map.zipFeat = new Map(zips.map((f) => [f.id, f]));
+    map.root.select('g.zips').selectAll('path.zip').data(zips, (d) => d.id).join('path').attr('class', 'zip')
+      .attr('d', map.path).attr('data-zip', (d) => d.id).style('fill', 'transparent').attr('fill-opacity', 0);
+  }
+
+  function boundsOf(rows) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const r of rows) {
+      const f = map.zipFeat.get(String(r.zip_code));
+      let b = f ? map.path.bounds(f) : null;
+      if (!b || !Number.isFinite(b[0][0])) { const p = map.proj([num(r.lon), num(r.lat)]); if (!p) continue; b = [p, p]; }
+      x0 = Math.min(x0, b[0][0]); y0 = Math.min(y0, b[0][1]); x1 = Math.max(x1, b[1][0]); y1 = Math.max(y1, b[1][1]);
+    }
+    return Number.isFinite(x0) ? [[x0, y0], [x1, y1]] : null;
+  }
+  function flyTo(b, dur) {
+    if (!b) return;
+    const { W, H } = map;
+    let [[x0, y0], [x1, y1]] = b;
+    const minSpan = 12; const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    const w = Math.max(x1 - x0, minSpan), h = Math.max(y1 - y0, minSpan);
+    const k = Math.min(400, Math.max(map.kMin || 0.8, 0.85 / Math.max(w / W, h / H)));
+    const t = d3.zoomIdentity.translate(W / 2, H / 2).scale(k).translate(-cx, -cy);
+    map.svg.transition().duration(D(dur)).ease(d3.easeCubicInOut).call(map.zoom.transform, t);
+  }
+  function viewsFor(rows) {
+    const placed = rows.filter((r) => num(r.lat) !== null);
+    const east = placed.filter((r) => num(r.lon) > -100), west = placed.filter((r) => num(r.lon) <= -100);
+    const clicked = (a) => a.filter((r) => (num(r[MK]) || 0) > 0);
+    const regs = (a) => [...new Set(a.map((r) => r.region))].sort().join(' · ');
+    const eClicks = d3.sum(east, (r) => num(r[MK]) || 0), wClicks = d3.sum(west, (r) => num(r[MK]) || 0);
+    const main = eClicks >= wClicks ? east : west;
+    const v = [];
+    if (clicked(main).length) v.push({ id: 'clicks', label: MK === 'clicks' ? 'Click hotspots' : 'Hotspots', rows: clicked(main) });
+    if (east.length) v.push({ id: 'east', label: regs(east), rows: east });
+    if (west.length) v.push({ id: 'west', label: regs(west), rows: west });
+    if (east.length && west.length) v.push({ id: 'all', label: 'All', rows: placed });
+    v.push({ id: 'us', label: 'US', bounds: [[-124.8, 49.4], [-66.9, 24.4]] }, { id: 'world', label: 'World', bounds: [[-170, 75], [180, -50]] });
+    return v;
+  }
+  function flyToView(id) {
+    const v = (map.views || []).find((x) => x.id === id) || (map.views || [])[0];
+    if (!v) return;
+    map.view = v.id;
+    if (v.id === 'all') map.svg.transition().duration(D(1000)).ease(d3.easeCubicInOut).call(map.zoom.transform, d3.zoomIdentity);
+    else if (v.bounds) { const a = map.proj(v.bounds[0]), b = map.proj(v.bounds[1]); flyTo([[a[0], a[1]], [b[0], b[1]]], 1200); }
+    else flyTo(boundsOf(v.rows), 1000);
+    document.querySelectorAll('#map-views button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === map.view)));
+  }
+
+  function hot(zip, on) {
+    if (!map.built) return;
+    map.root.selectAll('path.zip').filter((d) => d.id === zip).classed('is-hot', on).raise();
+    map.root.selectAll('circle.bub').filter((d) => d.zip === zip).classed('is-hot', on);
+    document.querySelectorAll('#zip-table tbody tr').forEach((tr) => tr.classList.toggle('is-hot', on && tr.dataset.zip === zip));
+  }
+
+  function drawMap() {
+    const box = document.getElementById('map-box');
+    MK = mapKey();
+    document.querySelectorAll('.geo-noun').forEach((el) => { el.textContent = NOUN[MK][1]; });
+    if (!prep(box, ['geo'])) { map.built = false; return; }
+    const narrow = box.clientWidth < 560;
+    const H = narrow ? 860 : 600;
+    if (!map.built || map.H !== H || !box.contains(map.svg.node())) buildMap(box, H);
+    addWorld();
+    addBasemap();
+    addCounties();
+    addZipShapes();
+    const rows = rowsFor('geo');
+    const by = new Map(rows.map((r) => [String(r.zip_code), r]));
+    const maxC = d3.max(rows, (r) => num(r[MK]) || 0) || 1;
+    map.r = d3.scaleSqrt([0, maxC], [0, narrow ? 20 : 15]);
+    const op = d3.scaleSqrt([0, maxC], [0.3, 0.9]);
+    const first = MOTION && !firstDone.has('map');
+    const tip = getTip(box);
+    const show = (event, zip) => {
+      const r = by.get(zip); if (!r) return;
+      tipLines(tip, `${zip} · ${r.city || ''}${r.region ? ', ' + r.region : ''}`, [
+        ...(MK === 'clicks' ? [] : [['Completed views', fmt('video_completed', num(r.video_completed)), true]]), ['Clicks', fmt('clicks', num(r.clicks)), MK === 'clicks'], ['Impressions', fmt('impressions', num(r.impressions))], ['CTR', fmt('ctr', num(r.ctr))],
+        ['Conversions', fmt('conversions', num(r.conversions))], ['CPC', fmt('cpc', num(r.cpc))], ['Spend', num(r.spend) === null ? '—' : fMoney(num(r.spend))],
+      ]);
+      placeTip(tip, box, event); hot(zip, true);
+    };
+    const hide = (zip) => { tip.classList.remove('on'); hot(zip, false); };
+    map.root.selectAll('path.zip')
+      .on('mousemove', (e, d) => show(e, d.id)).on('mouseleave', (e, d) => hide(d.id))
+      .on('click', (e, d) => flyTo(map.path.bounds(d), 800))
+      .style('fill', (d) => { const r = by.get(d.id); if (!r) return 'transparent'; return (num(r[MK]) || 0) > 0 ? color(0) : 'var(--cds-chart-muted)'; })
+      .transition().duration(D(900)).delay((d, i) => (first ? D(200 + (i % 60) * 12) : 0))
+      .attr('fill-opacity', (d) => { const r = by.get(d.id); if (!r) return 0; const c = num(r[MK]) || 0; return c > 0 ? op(c) : 0.35; });
+
+    const pts = rows.filter((r) => (num(r[MK]) || 0) > 0 && num(r.lat) !== null)
+      .map((r) => { const p = map.proj([num(r.lon), num(r.lat)]); return { zip: String(r.zip_code), c: num(r[MK]), x: p[0], y: p[1] }; })
+      .sort((a, b) => b.c - a.c);
+    const k = map.k || 1;
+    const dots = rows.filter((r) => !(num(r[MK]) > 0) && num(r.lat) !== null)
+      .map((r) => { const p = map.proj([num(r.lon), num(r.lat)]); return { zip: String(r.zip_code), x: p[0], y: p[1] }; });
+    map.root.select('g.dots').selectAll('circle.dot').data(dots, (d) => d.zip).join('circle').attr('class', 'dot')
+      .attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', 2.2 / k).style('fill', 'var(--cds-chart-muted)')
+      .on('mousemove', (e, d) => show(e, d.zip)).on('mouseleave', (e, d) => hide(d.zip));
+    map.root.select('g.bubbles').selectAll('circle.bub').data(pts, (d) => d.zip).join(
+      (en) => en.append('circle').attr('class', 'bub').attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', 0),
+      (up) => up,
+      (ex) => ex.transition().duration(D(300)).attr('r', 0).remove(),
+    ).style('fill', color(0)).style('stroke', color(0))
+      .on('mousemove', (e, d) => show(e, d.zip)).on('mouseleave', (e, d) => hide(d.zip))
+      .on('click', (e, d) => { const f = map.zipFeat.get(d.zip); flyTo(f ? map.path.bounds(f) : [[d.x - 3, d.y - 3], [d.x + 3, d.y + 3]], 800); })
+      .transition().duration(D(first ? 900 : 600)).delay((d, i) => (first ? D(500 + i * 25) : 0)).ease(d3.easeBackOut.overshoot(1.6))
+      .attrTween('r', (d) => (t) => (map.r(d.c) / (map.k || 1)) * t);   // live zoom level, so bubbles stay the right size if the map zooms during the grow-in
+    map.root.select('g.pulses').selectAll('circle.pulse').data(pts.slice(0, 3), (d) => d.zip).join('circle').attr('class', 'pulse on')
+      .attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', (d) => map.r(d.c) / k).style('stroke', color(0))
+      .style('animation-delay', (d, i) => (i * 0.6) + 's');
+
+    // views
+    map.views = viewsFor(rows);
+    const vb = document.getElementById('map-views');
+    d3.select(vb).selectAll('button').data(map.views, (v) => v.id).join((en) => en.append('button').attr('type', 'button').on('click', (e, v) => flyToView(v.id)))
+      .attr('data-v', (v) => v.id).text((v) => v.label).attr('aria-pressed', (v) => String(v.id === map.view));
+    if (!map.view) { map.view = (map.views[0] || {}).id; setTimeout(() => flyToView(map.view), first ? D(250) : 0); }
+    drawLabels(rows);
+    firstDone.add('map');
+
+    // legend
+    const lg = document.getElementById('map-legend');
+    lg.replaceChildren();
+    const sw = (style, label) => { const s = document.createElement('span'); const i = document.createElement('i'); Object.assign(i.style, style); s.append(i, document.createTextNode(label)); lg.append(s); };
+    sw({ background: color(0) }, `ZIP with ${NOUN[MK][1]} (darker = more)`);
+    sw({ background: 'var(--cds-chart-muted)', borderRadius: '50%', width: '6px', height: '6px' }, `ZIP with impressions, no ${NOUN[MK][1]}`);
+    const bk = document.createElement('span'); bk.className = 'sn-bubkey';
+    const s2 = d3.select(bk).append('svg').attr('width', 44).attr('height', 22);
+    const r1 = Math.max(2, map.r(1) * 0.6), r2 = map.r(maxC) * 0.6;
+    s2.append('circle').attr('cx', 6).attr('cy', 11).attr('r', r1).style('fill', color(0)).attr('fill-opacity', .55);
+    s2.append('circle').attr('cx', 30).attr('cy', 11).attr('r', Math.min(10, r2)).style('fill', color(0)).attr('fill-opacity', .55);
+    bk.append(document.createTextNode(`1 to ${fInt(maxC)} ${NOUN[MK][1]}`));
+    lg.append(bk);
+  }
+  const zt = document.getElementById('zip-table');
+  zt.addEventListener('mouseover', (e) => { const tr = e.target.closest('tbody tr[data-zip]'); if (tr) hot(tr.dataset.zip, true); });
+  zt.addEventListener('mouseout', (e) => { const tr = e.target.closest('tbody tr[data-zip]'); if (tr) hot(tr.dataset.zip, false); });
+  zt.addEventListener('click', (e) => {
+    const tr = e.target.closest('tbody tr[data-zip]'); if (!tr || !map.built) return;
+    const f = map.zipFeat.get(tr.dataset.zip);
+    const r = rowsFor('geo').find((g) => String(g.zip_code) === tr.dataset.zip);
+    const b = f ? map.path.bounds(f) : r && num(r.lat) !== null ? boundsOf([r]) : null;
+    if (b) { flyTo(b, 800); document.getElementById('map-box').scrollIntoView({ block: 'nearest', behavior: MOTION ? 'smooth' : 'auto' }); }
+  });
+
+  // ---------- render ----------
+  let scopeKey = null;
+  function render() {
+    const vid = isVideo();
+    document.querySelector('.sn').classList.toggle('is-video', vid);
+    if (status('totals') === 'ok') {
+      const key = String(dash.params().group ?? '') + '|' + cur();
+      if (key !== scopeKey) {
+        scopeKey = key;
+        const r = rowsFor('totals')[0];
+        if (vid && metric === 'clicks' && !((num(r && r.clicks) || 0) > 0)) metric = 'video_completed';
+      }
+      if (!vid && METRICS[metric].video) metric = 'clicks';
+    }
+    picker.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === metric)));
+    const steps = [drawKpis, drawTakeaway, drawCampaigns, drawTimeline, drawMap, drawZipTable, drawTrackers, drawBreakdowns, drawDomainTable];
+    for (const s of steps) { try { s(); } catch (e) { setTimeout(() => { throw e; }); } }
+    // geo coverage footnote
+    const gc = dash.data('geo_coverage');
+    const r = gc.status === 'ok' ? (gc.data || []).find((x) => String(x.campaign) === cur()) : null;
+    document.querySelectorAll('[data-source="geo_coverage"]').forEach((el) => { const v = r ? num(r[el.dataset.field]) : null; el.textContent = v === null ? '—' : fInt(v); });
+  }
+  dash.onData(render);
+})();
+</script>
+
+</div>
+</body>
+</html>

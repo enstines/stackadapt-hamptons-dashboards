@@ -1,0 +1,17 @@
+# Render Blueprint: one static site that serves every client dashboard.
+services:
+  - type: web
+    name: client-dashboards
+    runtime: static
+    staticPublishPath: ./site
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow, noarchive
+      - path: /home.json
+        name: Cache-Control
+        value: no-cache
+      - path: /r/*/data/*
+        name: Cache-Control
+        value: no-cache
