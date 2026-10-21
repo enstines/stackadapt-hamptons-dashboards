@@ -2,8 +2,8 @@ name: Refresh dashboards
 
 on:
   schedule:
-    - cron: '15 16 * * *'      # every day, 16:15 UTC (about 11:15 AM Eastern, after the StackAdapt emails load)
-  workflow_dispatch: {}          # lets you run it by hand from the Actions tab
+    - cron: '15 16 * * *'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
