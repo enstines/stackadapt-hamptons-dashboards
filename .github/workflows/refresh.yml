@@ -1,1 +1,54 @@
+name: Refresh dashboards
 
+on:
+  schedule:
+    - cron: '15 16 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-dashboards
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install google-cloud-bigquery cryptography
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Pull fresh data from BigQuery
+        id: refresh
+        continue-on-error: true
+        run: python3 tools/refresh.py
+
+      - name: Publish changes
+        run: |
+          if [ -z "$(git status --porcelain site/r)" ]; then
+            echo "No data changes; nothing to publish."
+            git checkout -- site/home.json clients.json 2>/dev/null || true
+            exit 0
+          fi
+          git config user.name "dashboard-refresh"
+          git config user.email "dashboard-refresh@users.noreply.github.com"
+          git add -A
+          git commit -m "Daily data refresh $(date -u +%F)"
+          git push
+
+      - name: Flag failures
+        if: steps.refresh.outcome == 'failure'
+        run: |
+          echo "One or more clients failed to refresh. See the 'Pull fresh data' step."
+          exit 1
